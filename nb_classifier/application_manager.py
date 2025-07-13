@@ -1,5 +1,4 @@
 from typing import Dict, Any
-from pprint import pprint
 from nb_classifier.data_handler import DataHandler
 from nb_classifier.naive_bayes_model_builder import NaiveBayesModelBuilder
 from nb_classifier.classifier import ClassifierService
@@ -23,6 +22,33 @@ def display_accuracy_report(report: Dict):
 
 FILE_PATH = '/Users/lyhwstynmn/פרוייקטים/python/naive-bayes-pipeline/data/mushroom_decoded.csv'
 TARGET_COL = 'poisonous'
+
+def prepare_model_pipeline(
+    file_path: str = FILE_PATH,
+    target_col: str = TARGET_COL,
+    min_accuracy: float = 0.8
+) -> tuple[ClassifierService, dict]:
+    logger.info("Starting full model preparation...")
+
+    data_handler = DataHandler(data_path=file_path)
+    train_data, test_data = data_handler.get_split_data_as_dicts(target_col=target_col)
+
+    model_builder = NaiveBayesModelBuilder(alpha=1.0)
+    trained_model = model_builder.build_model(train_data, target_col=target_col)
+
+    classifier = ClassifierService(model_artifact=trained_model)
+
+    evaluator = ModelEvaluatorService(classifier=classifier)
+    list_test_data = data_handler.get_data_as_list_of_dicts(test_data)
+    accuracy_report = evaluator.run_evaluation(test_data=list_test_data, target_col=target_col)
+
+    display_accuracy_report(accuracy_report)
+
+    if accuracy_report["accuracy"] < min_accuracy:
+        raise RuntimeError(f"Model accuracy too low: {accuracy_report['accuracy']:.2%}")
+
+    return classifier, trained_model
+
 
 if __name__ == "__main__":
     logger.info("1. Preparing data...")
