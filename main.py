@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import Dict, Any
 import uvicorn
 
-from nb_classifier.application_manager import prepare_model_pipeline, extract_expected_features
+from nb_classifier.application_manager import prepare_model_pipeline,extract_expected_features
 from nb_classifier.logger_config import get_logger
 
 logger = get_logger(__name__)

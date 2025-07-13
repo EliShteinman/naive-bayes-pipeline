@@ -20,9 +20,9 @@ class ModelEvaluatorService:
             true_label = row[target_col]
             sample = {k: v for k, v in row.items() if k != target_col}
 
-            prediction = self._classifier.predict(sample)
 
-            if prediction == true_label:
+            pred_label = self._classifier.predict(sample)["prediction"]
+            if pred_label == true_label:
                 correct += 1
 
         accuracy = correct / total if total > 0 else 0
