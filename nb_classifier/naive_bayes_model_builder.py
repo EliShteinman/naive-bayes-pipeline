@@ -1,55 +1,24 @@
+# nb_classifier/naive_bayes_model_builder.py
 import pandas as pd
-from typing import Dict, Any
+from typing import Dict, Any, List
 from copy import deepcopy
 from math import log
+from nb_classifier.logger_config import get_logger
 
-
+logger = get_logger(__name__)
 class NaiveBayesModelBuilder:
-    """
-    Builds a Naive Bayes model (log-probability weights) from training data.
-    Its sole responsibility is to create the model artifact.
-    """
-
     def __init__(self, alpha: float = 1.0):
-        """
-        Initializes the model builder with a smoothing parameter.
-
-        Args:
-            alpha (float): The smoothing parameter (Laplace).
-        """
         self._alpha = alpha
 
-    def build(self, train_data: pd.DataFrame, target_col: str) -> Dict[str, Any]:
-        """
-        Builds and returns the complete Naive Bayes model artifact (the weights).
-        This method orchestrates the two-step process of counting and converting to weights.
-
-        Args:
-            train_data (pd.DataFrame): The training data.
-            target_col (str): The name of the target column.
-
-        Returns:
-            Dict[str, Any]: The trained model artifact, containing log-probabilities.
-        """
-        # Step 1: Calculate raw counts from the data.
-        counts_model = self._get_model_counts(train_data, target_col)
-
-        # Step 2: Convert the raw counts into log-probability weights.
+    def build_model(self, train_data: pd.DataFrame, target_col: str) -> Dict[str, Any]:
+        df = train_data
+        counts_model = self._get_model_counts(df, target_col)
         weights_model = self._convert_counts_to_weights(counts_model)
-
         return weights_model
 
-    # --- Private Helper Methods ---
 
     @staticmethod
     def _get_model_counts(data: pd.DataFrame, target_col: str) -> Dict[str, Any]:
-        """
-        Calculates frequency counts for all features, conditioned on the target variable.
-        This is a static method as it does not depend on the instance's state.
-
-        Returns:
-            A dictionary containing likelihoods, target counts, and total count.
-        """
         target_counts = {val: 0 for val in data[target_col].unique()}
 
         feature_cols = [col for col in data.columns if col != target_col]
@@ -75,7 +44,7 @@ class NaiveBayesModelBuilder:
             "target_counts": target_counts,
             "total_count": len(data),  # More direct than sum(target_counts.values())
         }
-
+        logger.debug(f"Model counts: {result}")
         return result
 
     def _convert_counts_to_weights(self, counts_model: dict) -> Dict[str, Any]:
@@ -108,5 +77,5 @@ class NaiveBayesModelBuilder:
                 weights[target_value][column] = {
                     k: log(v / total) for k, v in value_dict.items()
                 }
-
+        logger.debug(f"Converted counts to weights: {weights}")
         return weights

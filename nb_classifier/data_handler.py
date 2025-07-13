@@ -1,23 +1,37 @@
+# nb_classifier/data_handler.py
 import pandas as pd
-from typing import Tuple
-from sklearn.model_selection import train_test_split
+from typing import List, Dict, Any, Tuple, Hashable
 
+from pandas import DataFrame
+from sklearn.model_selection import train_test_split
+from nb_classifier.logger_config import get_logger
+
+logger = get_logger(__name__)
 
 class DataHandler:
-    """
-    Handles loading, cleaning, and splitting of dataset from a CSV file.
-    """
-
     def __init__(self, data_path: str):
-        """
-        Initializes the DataHandler with the path to the data file.
-
-        Args:
-            data_path (str): The path to the CSV file.
-        """
         self.data_path = data_path
 
-    def load_and_clean(self) -> pd.DataFrame:
+    def get_clean_data_as_dicts(self) -> list[dict[Hashable, Any]]:
+        """
+        Endpoint to get the entire cleaned dataset as a list of dictionaries.
+
+        Returns:
+            List[Dict[str, Any]]: The data, ready to be sent as a JSON array.
+        """
+        df = self._load_and_clean_df()
+        return df.to_dict(orient='records')
+
+    def get_split_data_as_dicts(self, target_col: str, test_size: float = 0.3, random_state: int = 42) -> tuple[
+        DataFrame, DataFrame]:
+        full_df = self._load_and_clean_df()
+
+        # הלוגיקה של split_and_validate נמצאת כאן
+        train_df, test_df = self._split_and_validate_df(full_df, target_col, test_size, random_state)
+
+        return train_df, test_df
+    # מתודות עזר פנימיות שמטפלות ב-DataFrames
+    def _load_and_clean_df(self) -> pd.DataFrame:
         """
         Loads data from the CSV file, removes known problematic columns,
         and filters out columns with no variance.
@@ -25,6 +39,7 @@ class DataHandler:
         Returns:
             pd.DataFrame: The cleaned DataFrame.
         """
+        print(self.data_path)
         cleaned_data = (
             pd.read_csv(self.data_path)
             .drop(columns=["stalk-root"], errors="ignore")
@@ -32,13 +47,11 @@ class DataHandler:
         )
         return cleaned_data
 
-    def split_and_validate(
-        self,
+    def _split_and_validate_df(        self,
         data: pd.DataFrame,
         target_col: str,
         test_size: float = 0.3,
-        random_state: int = 42,
-    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        random_state: int = 42,) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
         Splits data into training and testing sets and validates the test set.
 
@@ -80,3 +93,8 @@ class DataHandler:
             test_df = test_df.drop(index=indices_to_drop)
 
         return train_df.reset_index(drop=True), test_df.reset_index(drop=True)
+
+    @staticmethod
+    def get_data_as_list_of_dicts(data: pd.DataFrame) -> List[Dict[Hashable, Any]]:
+
+        return data.to_dict(orient='records')
