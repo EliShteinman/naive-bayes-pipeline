@@ -1,0 +1,39 @@
+naive_bayes_pipeline/
+│
+├── main.py                            # נקודת הפעלה מרכזית
+│
+├── config/
+│   └── logger_config.py               # הגדרת לוגים
+│
+├── dal/
+│   └── data_loader.py                # אחראי על טעינת נתונים גולמיים (CSV וכו')
+│
+├── preprocessing/
+│   ├── cleaner.py                    # ניקוי ערכים חסרים, כפילויות
+│   └── splitter.py                   # חלוקת הדאטה ל־train/test
+│
+├── model/
+│   ├── trainer.py                    # בניית ואימון המודל
+│   └── saver.py                      # שמירה וטעינה של המודל המאומן (Pickle וכו')
+│
+├── pipeline/
+│   └── application_manager.py        # Orchestrator שמחבר בין כל השלבים
+│
+├── api/                              # (רשות) - Flask/FastAPI לפרדיקציה בעתיד
+│   └── predictor.py
+│
+├── tests/                            # כל הטסטים כאן, מקבילים לקוד שלך
+│   ├── test_data_loader.py
+│   ├── test_cleaner.py
+│   ├── test_splitter.py
+│   ├── test_trainer.py
+│   └── test_application.py
+│
+├── trained_model/                    # ספרייה לשמירת המודל המאומן
+│   └── model.pkl
+│
+├── data/                             # נתוני קלט קבועים
+│   └── raw.csv
+│
+├── requirements.txt
+└── README.md
