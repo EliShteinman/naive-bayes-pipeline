@@ -1,7 +1,7 @@
 # app.py
 
-import streamlit as st
 import requests
+import streamlit as st
 
 API_BASE = "http://localhost:8000"
 

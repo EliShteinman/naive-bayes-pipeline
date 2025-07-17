@@ -1,10 +1,11 @@
 # nb_classifier/data_handler.py
-import pandas as pd
-from typing import List, Dict, Any, Tuple, Hashable
+from typing import Any, Dict, Hashable, List, Tuple
 
+import pandas as pd
 from pandas import DataFrame
 from sklearn.model_selection import train_test_split
-from config.logger_config import get_logger
+
+from nb_classifier.config.logger_config import get_logger
 
 logger = get_logger(__name__)
 

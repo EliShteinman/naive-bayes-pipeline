@@ -1,7 +1,8 @@
 # nb_classifier/model_evaluator.py
-from typing import Dict, Any, List, Hashable
-from nb_classifier.classifier import ClassifierService
-from config.logger_config import get_logger
+from typing import Any, Dict, Hashable, List
+
+from bac.classifier import ClassifierService
+from nb_classifier.config.logger_config import get_logger
 
 logger = get_logger(__name__)
 

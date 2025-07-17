@@ -1,39 +1,29 @@
-naive_bayes_pipeline/
-│
-├── main.py                            # נקודת הפעלה מרכזית
-│
-├── config/
-│   └── logger_config.py               # הגדרת לוגים
-│
-├── dal/
-│   └── data_loader.py                # אחראי על טעינת נתונים גולמיים (CSV וכו')
-│
-├── preprocessing/
-│   ├── cleaner.py                    # ניקוי ערכים חסרים, כפילויות
-│   └── splitter.py                   # חלוקת הדאטה ל־train/test
-│
-├── model/
-│   ├── trainer.py                    # בניית ואימון המודל
-│   └── saver.py                      # שמירה וטעינה של המודל המאומן (Pickle וכו')
-│
-├── pipeline/
-│   └── application_manager.py        # Orchestrator שמחבר בין כל השלבים
-│
-├── api/                              # (רשות) - Flask/FastAPI לפרדיקציה בעתיד
-│   └── predictor.py
-│
-├── tests/                            # כל הטסטים כאן, מקבילים לקוד שלך
-│   ├── test_data_loader.py
-│   ├── test_cleaner.py
-│   ├── test_splitter.py
-│   ├── test_trainer.py
-│   └── test_application.py
-│
-├── trained_model/                    # ספרייה לשמירת המודל המאומן
-│   └── model.pkl
-│
-├── data/                             # נתוני קלט קבועים
-│   └── raw.csv
-│
-├── requirements.txt
-└── README.md
+nb_classifier_project/
+├── data/
+├── logs/
+└── nb_classifier/
+    ├── __init__.py
+    │
+    ├── config/
+    │   ├── __init__.py
+    │   └── logger_config.py
+    │
+    ├── dal/
+    │   ├── __init__.py
+    │   └── data_loader.py
+    │
+    ├── evaluation/
+    │   ├── __init__.py
+    │   └── evaluator.py
+    │
+    ├── model/
+    │   ├── __init__.py
+    │   ├── naive_bayes_builder.py
+    │   └── predictor.py
+    │
+    ├── preprocessing/
+    │   ├── __init__.py
+    │   ├── cleaner.py
+    │   └── splitter.py
+    │
+    └── typing_defs.py

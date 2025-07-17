@@ -1,13 +1,14 @@
+from typing import Any, Dict
+
+import uvicorn
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import Dict, Any
-import uvicorn
 
-from nb_classifier.application_manager import (
-    prepare_model_pipeline,
+from bac.application_manager import (
     extract_expected_features,
+    prepare_model_pipeline,
 )
-from config.logger_config import get_logger
+from nb_classifier.config.logger_config import get_logger
 
 logger = get_logger(__name__)
 app = FastAPI()

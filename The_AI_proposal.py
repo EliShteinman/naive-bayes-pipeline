@@ -17,10 +17,11 @@ To run the script, execute from the command line:
 """
 
 from copy import deepcopy
-import pandas as pd
 from math import log
+from typing import Any, Tuple
+
+import pandas as pd
 from sklearn.model_selection import train_test_split
-from typing import Tuple, Any
 
 
 def load_and_clean_mushroom_data(

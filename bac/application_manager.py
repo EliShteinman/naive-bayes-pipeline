@@ -1,9 +1,10 @@
-from typing import Dict, Any
-from nb_classifier.data_handler import DataHandler
-from nb_classifier.naive_bayes_model_builder import NaiveBayesModelBuilder
-from nb_classifier.classifier import ClassifierService
-from nb_classifier.model_evaluator import ModelEvaluatorService
-from config.logger_config import get_logger
+from typing import Any, Dict
+
+from bac.classifier import ClassifierService
+from nb_classifier.config.logger_config import get_logger
+from bac.data_handler import DataHandler
+from bac.model_evaluator import ModelEvaluatorService
+from bac.naive_bayes_model_builder import NaiveBayesModelBuilder
 
 logger = get_logger(__name__)
 

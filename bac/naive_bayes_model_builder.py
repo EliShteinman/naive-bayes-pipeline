@@ -1,9 +1,11 @@
 # nb_classifier/naive_bayes_model_builder.py
-import pandas as pd
-from typing import Dict, Any
 from copy import deepcopy
 from math import log
-from config.logger_config import get_logger
+from typing import Any, Dict
+
+import pandas as pd
+
+from nb_classifier.config.logger_config import get_logger
 
 logger = get_logger(__name__)
 
