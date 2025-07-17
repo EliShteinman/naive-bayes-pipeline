@@ -216,7 +216,8 @@ class NaiveBayesModelBuilder:
                     except ValueError as e:
                         logger.error(
                             f"Math domain error for feature='{feature}', value='{k}', target='{target_val}'. "
-                            f"Count: {v}, Total Count: {total_feature_count}. Error: {e}. Setting weight to a large negative number."
+                            f"Count: {v}, Total Count: {total_feature_count}. Error: {e}. "
+                            "Setting weight to a large negative number."
                         )
                         weights[target_val][feature][k] = -999.0
 

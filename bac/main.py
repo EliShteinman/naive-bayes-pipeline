@@ -4,10 +4,7 @@ import uvicorn
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-from bac.application_manager import (
-    extract_expected_features,
-    prepare_model_pipeline,
-)
+from bac.application_manager import extract_expected_features, prepare_model_pipeline
 from nb_classifier.config.logger_config import get_logger
 
 logger = get_logger(__name__)
