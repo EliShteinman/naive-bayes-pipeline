@@ -4,7 +4,7 @@ exclude =
     .git,
     __pycache__,
     venv,
-    .venv,  # שם נפוץ נוסף לסביבה וירטואלית
+    .venv,
     build,
     dist,
     logs
