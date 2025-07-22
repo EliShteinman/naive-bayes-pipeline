@@ -1,0 +1,7 @@
+services:
+  data-loader-service:
+    build: ./service_data_loader
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./data:/app/data
