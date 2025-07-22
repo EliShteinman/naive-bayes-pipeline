@@ -1,11 +1,15 @@
 # nb_classifier/naive_bayes_model_builder.py
-import pandas as pd
-from typing import Dict, Any, List
 from copy import deepcopy
 from math import log
+from typing import Any, Dict
+
+import pandas as pd
+
 from nb_classifier.logger_config import get_logger
 
 logger = get_logger(__name__)
+
+
 class NaiveBayesModelBuilder:
     def __init__(self, alpha: float = 1.0):
         self._alpha = alpha
@@ -16,7 +20,6 @@ class NaiveBayesModelBuilder:
         weights_model = self._convert_counts_to_weights(counts_model)
         return weights_model
 
-
     @staticmethod
     def _get_model_counts(data: pd.DataFrame, target_col: str) -> Dict[str, Any]:
         target_counts = {val: 0 for val in data[target_col].unique()}
@@ -24,13 +27,11 @@ class NaiveBayesModelBuilder:
         feature_cols = [col for col in data.columns if col != target_col]
 
         unique_value_dicts = {
-            col: {val: 0 for val in data[col].unique()}
-            for col in feature_cols
+            col: {val: 0 for val in data[col].unique()} for col in feature_cols
         }
 
         likelihoods = {
-            val: deepcopy(unique_value_dicts)
-            for val in data[target_col].unique()
+            val: deepcopy(unique_value_dicts) for val in data[target_col].unique()
         }
 
         for _, row in data.iterrows():

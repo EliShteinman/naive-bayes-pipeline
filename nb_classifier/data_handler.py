@@ -1,12 +1,14 @@
 # nb_classifier/data_handler.py
-import pandas as pd
-from typing import List, Dict, Any, Tuple, Hashable
+from typing import Any, Dict, Hashable, List, Tuple
 
+import pandas as pd
 from pandas import DataFrame
 from sklearn.model_selection import train_test_split
+
 from nb_classifier.logger_config import get_logger
 
 logger = get_logger(__name__)
+
 
 class DataHandler:
     def __init__(self, data_path: str):
@@ -20,16 +22,20 @@ class DataHandler:
             List[Dict[str, Any]]: The data, ready to be sent as a JSON array.
         """
         df = self._load_and_clean_df()
-        return df.to_dict(orient='records')
+        return df.to_dict(orient="records")
 
-    def get_split_data_as_dicts(self, target_col: str, test_size: float = 0.3, random_state: int = 42) -> tuple[
-        DataFrame, DataFrame]:
+    def get_split_data_as_dicts(
+        self, target_col: str, test_size: float = 0.3, random_state: int = 42
+    ) -> tuple[DataFrame, DataFrame]:
         full_df = self._load_and_clean_df()
 
         # הלוגיקה של split_and_validate נמצאת כאן
-        train_df, test_df = self._split_and_validate_df(full_df, target_col, test_size, random_state)
+        train_df, test_df = self._split_and_validate_df(
+            full_df, target_col, test_size, random_state
+        )
 
         return train_df, test_df
+
     # מתודות עזר פנימיות שמטפלות ב-DataFrames
     def _load_and_clean_df(self) -> pd.DataFrame:
         """
@@ -47,11 +53,13 @@ class DataHandler:
         )
         return cleaned_data
 
-    def _split_and_validate_df(        self,
+    def _split_and_validate_df(
+        self,
         data: pd.DataFrame,
         target_col: str,
         test_size: float = 0.3,
-        random_state: int = 42,) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        random_state: int = 42,
+    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
         Splits data into training and testing sets and validates the test set.
 
@@ -97,4 +105,4 @@ class DataHandler:
     @staticmethod
     def get_data_as_list_of_dicts(data: pd.DataFrame) -> List[Dict[Hashable, Any]]:
 
-        return data.to_dict(orient='records')
+        return data.to_dict(orient="records")

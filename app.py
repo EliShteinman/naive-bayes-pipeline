@@ -1,17 +1,19 @@
 # app.py
 
-import streamlit as st
 import requests
+import streamlit as st
 
 API_BASE = "http://localhost:8000"
 
 st.title("🍄 Naive Bayes Mushroom Classifier")
+
 
 # --- שלב 1: קבלת הסכמה ---
 @st.cache_data
 def fetch_schema():
     res = requests.get(f"{API_BASE}/expected-features")
     return res.json()
+
 
 schema = fetch_schema()
 
@@ -24,10 +26,7 @@ with st.form("prediction_form"):
 
 # --- שלב 3: שליחת קלט וקבלת תחזית ---
 if submitted:
-    response = requests.post(
-        f"{API_BASE}/predict",
-        json={"features": user_input}
-    )
+    response = requests.post(f"{API_BASE}/predict", json={"features": user_input})
     if response.status_code == 200:
         result = response.json()
         st.success(f"Prediction: {result['prediction']}")

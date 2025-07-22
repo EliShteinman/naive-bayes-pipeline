@@ -1,11 +1,13 @@
-from typing import Dict, Any
-from nb_classifier.data_handler import DataHandler
-from nb_classifier.naive_bayes_model_builder import NaiveBayesModelBuilder
+from typing import Any, Dict
+
 from nb_classifier.classifier import ClassifierService
-from nb_classifier.model_evaluator import ModelEvaluatorService
+from nb_classifier.data_handler import DataHandler
 from nb_classifier.logger_config import get_logger
+from nb_classifier.model_evaluator import ModelEvaluatorService
+from nb_classifier.naive_bayes_model_builder import NaiveBayesModelBuilder
 
 logger = get_logger(__name__)
+
 
 def display_prediction(sample: Dict, prediction: Any):
     print(f"\nFor sample: {sample}")
@@ -20,8 +22,11 @@ def display_accuracy_report(report: Dict):
     print(f"Incorrectly classified: {report['incorrect_predictions']}")
 
 
-FILE_PATH = '/Users/lyhwstynmn/פרוייקטים/python/naive-bayes-pipeline/data/mushroom_decoded.csv'
-TARGET_COL = 'poisonous'
+FILE_PATH = (
+    "/Users/lyhwstynmn/פרוייקטים/python/naive-bayes-pipeline/data/mushroom_decoded.csv"
+)
+TARGET_COL = "poisonous"
+
 
 def prepare_model_pipeline(
     file_path: str = FILE_PATH,
@@ -36,9 +41,7 @@ def prepare_model_pipeline(
 
     # 1. טעינת נתונים וחלוקה
     data_handler = DataHandler(data_path=file_path)
-    train_df, test_df = data_handler.get_split_data_as_dicts(
-        target_col=target_col
-    )
+    train_df, test_df = data_handler.get_split_data_as_dicts(target_col=target_col)
 
     # 2. בניית מודל Naive Bayes
     model_builder = NaiveBayesModelBuilder(alpha=1.0)
@@ -59,9 +62,7 @@ def prepare_model_pipeline(
 
     # 5. בדיקת סף דיוק מינימלי
     if accuracy_report["accuracy"] < min_accuracy:
-        raise RuntimeError(
-            f"Model accuracy too low: {accuracy_report['accuracy']:.2%}"
-        )
+        raise RuntimeError(f"Model accuracy too low: {accuracy_report['accuracy']:.2%}")
 
     return classifier, trained_model
 
@@ -73,6 +74,8 @@ def extract_expected_features(model: dict) -> dict[str, list[str]]:
         for feature, value_map in first_class_dict.items()
         if feature != "__prior__"
     }
+
+
 if __name__ == "__main__":
     logger.info("1. Preparing data...")
     data_handler = DataHandler(data_path=FILE_PATH)
@@ -85,14 +88,15 @@ if __name__ == "__main__":
     logger.debug(trained_model)  # הדפסת המודל כדי לוודא שהוא נבנה כראוי
     logger.info("Model built successfully.")
 
-
     logger.info("\n3. Evaluating model performance...")
-    evaluator = ModelEvaluatorService(classifier=ClassifierService(model_artifact=trained_model))
+    evaluator = ModelEvaluatorService(
+        classifier=ClassifierService(model_artifact=trained_model)
+    )
     list_test_data = data_handler.get_data_as_list_of_dicts(test_data)
-    accuracy_report = evaluator.run_evaluation(test_data=list_test_data, target_col=TARGET_COL)
+    accuracy_report = evaluator.run_evaluation(
+        test_data=list_test_data, target_col=TARGET_COL
+    )
     display_accuracy_report(accuracy_report)
-
-
 
     logger.info("\n4. Classify a single sample...")
     classifier = ClassifierService(model_artifact=trained_model)
