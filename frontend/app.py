@@ -13,7 +13,7 @@ import streamlit as st
 # --- 1. Configuration ---
 # Use an environment variable for the API URL, with a fallback for local development.
 # This makes the app more flexible for different deployment scenarios.
-API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000")
+API_BASE_URL = os.getenv("API_BASE_URL", "http://host.docker.internal:8000")
 
 st.set_page_config(page_title="Mushroom Classifier", page_icon="🍄")
 st.title("🍄 Naive Bayes Mushroom Classifier")
