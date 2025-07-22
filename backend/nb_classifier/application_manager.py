@@ -22,9 +22,7 @@ def display_accuracy_report(report: Dict):
     print(f"Incorrectly classified: {report['incorrect_predictions']}")
 
 
-FILE_PATH = (
-    "data/mushroom_decoded.csv"
-)
+FILE_PATH = "data/mushroom_decoded.csv"
 TARGET_COL = "poisonous"
 
 

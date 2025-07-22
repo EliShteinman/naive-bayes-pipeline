@@ -2,13 +2,10 @@ from typing import Any, Dict
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-
-from nb_classifier.application_manager import (
-    extract_expected_features,
-    prepare_model_pipeline,
-)
+from nb_classifier.application_manager import (extract_expected_features,
+                                               prepare_model_pipeline)
 from nb_classifier.logger_config import get_logger
+from pydantic import BaseModel
 
 logger = get_logger(__name__)
 app = FastAPI()
