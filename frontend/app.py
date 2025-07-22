@@ -3,7 +3,7 @@
 import requests
 import streamlit as st
 
-API_BASE = "http://localhost:8000"
+API_BASE = "http://host.docker.internal:8000"
 
 st.title("🍄 Naive Bayes Mushroom Classifier")
 

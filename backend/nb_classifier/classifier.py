@@ -1,7 +1,7 @@
 # nb_classifier/classifier.py
 from typing import Any, Dict, Hashable
 
-from nb_classifier.logger_config import get_logger
+from .logger_config import get_logger
 
 logger = get_logger(__name__)
 

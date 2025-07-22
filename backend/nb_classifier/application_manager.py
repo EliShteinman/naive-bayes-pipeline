@@ -1,10 +1,10 @@
 from typing import Any, Dict
 
-from nb_classifier.classifier import ClassifierService
-from nb_classifier.data_handler import DataHandler
-from nb_classifier.logger_config import get_logger
-from nb_classifier.model_evaluator import ModelEvaluatorService
-from nb_classifier.naive_bayes_model_builder import NaiveBayesModelBuilder
+from .classifier import ClassifierService
+from .data_handler import DataHandler
+from .logger_config import get_logger
+from .model_evaluator import ModelEvaluatorService
+from .naive_bayes_model_builder import NaiveBayesModelBuilder
 
 logger = get_logger(__name__)
 
@@ -23,7 +23,7 @@ def display_accuracy_report(report: Dict):
 
 
 FILE_PATH = (
-    "/Users/lyhwstynmn/פרוייקטים/python/naive-bayes-pipeline/data/mushroom_decoded.csv"
+    "data/mushroom_decoded.csv"
 )
 TARGET_COL = "poisonous"
 

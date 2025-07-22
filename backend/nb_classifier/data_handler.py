@@ -5,7 +5,7 @@ import pandas as pd
 from pandas import DataFrame
 from sklearn.model_selection import train_test_split
 
-from nb_classifier.logger_config import get_logger
+from .logger_config import get_logger
 
 logger = get_logger(__name__)
 
