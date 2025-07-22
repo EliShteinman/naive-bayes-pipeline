@@ -2,6 +2,9 @@ from typing import Any, Dict
 
 from .classifier import ClassifierService
 from .data_handler import DataHandler
+from .data_cleaner import DataCleaner
+from .data_splitter import DataSplitter
+from .df_utiles import DataFrameUtils
 from .logger_config import get_logger
 from .model_evaluator import ModelEvaluatorService
 from .naive_bayes_model_builder import NaiveBayesModelBuilder
@@ -39,20 +42,26 @@ def prepare_model_pipeline(
 
     # 1. טעינת נתונים וחלוקה
     data_handler = DataHandler(data_path=file_path)
-    train_df, test_df = data_handler.get_split_data_as_dicts(target_col=target_col)
+    data_raw = data_handler.load_data()
+    data_cleaner = DataCleaner(data_raw)
+    data_cleaned = data_cleaner.clean()
+    data_splitter = DataSplitter(data_cleaned, target_col=TARGET_COL)
+    train_df, test_df = data_splitter.split_data(
+        test_size=0.3, random_state=42
+    )
 
     # 2. בניית מודל Naive Bayes
     model_builder = NaiveBayesModelBuilder(alpha=1.0)
-    trained_model = model_builder.build_model(train_df, target_col=target_col)
+    trained_model = model_builder.build_model(train_df, target_col=TARGET_COL)
 
     # 3. עטיפת המודל ב-ClassifierService
     classifier = ClassifierService(model_artifact=trained_model)
 
     # 4. הערכת הביצועים
     evaluator = ModelEvaluatorService(classifier=classifier)
-    list_test_data = DataHandler.get_data_as_list_of_dicts(test_df)
+    list_test_data = DataFrameUtils.get_data_as_list_of_dicts(test_df)
     accuracy_report = evaluator.run_evaluation(
-        test_data=list_test_data, target_col=target_col
+        test_data=list_test_data, target_col=TARGET_COL
     )
 
     # הדפסה למסך (או ל-log) של תוצאות ההערכה
@@ -72,29 +81,3 @@ def extract_expected_features(model: dict) -> dict[str, list[str]]:
         for feature, value_map in first_class_dict.items()
         if feature != "__prior__"
     }
-
-
-if __name__ == "__main__":
-    logger.info("1. Preparing data...")
-    data_handler = DataHandler(data_path=FILE_PATH)
-    train_data, test_data = data_handler.get_split_data_as_dicts(target_col=TARGET_COL)
-    logger.info("Data preparation complete.")
-
-    logger.info("\n2. Building Naive Bayes model...")
-    model_builder = NaiveBayesModelBuilder(alpha=1.0)
-    trained_model = model_builder.build_model(train_data, target_col=TARGET_COL)
-    logger.debug(trained_model)  # הדפסת המודל כדי לוודא שהוא נבנה כראוי
-    logger.info("Model built successfully.")
-
-    logger.info("\n3. Evaluating model performance...")
-    evaluator = ModelEvaluatorService(
-        classifier=ClassifierService(model_artifact=trained_model)
-    )
-    list_test_data = data_handler.get_data_as_list_of_dicts(test_data)
-    accuracy_report = evaluator.run_evaluation(
-        test_data=list_test_data, target_col=TARGET_COL
-    )
-    display_accuracy_report(accuracy_report)
-
-    logger.info("\n4. Classify a single sample...")
-    classifier = ClassifierService(model_artifact=trained_model)
