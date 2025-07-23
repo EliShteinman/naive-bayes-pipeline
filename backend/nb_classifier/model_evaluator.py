@@ -1,5 +1,6 @@
 # backend/nb_classifier/model_evaluator.py
 from typing import Any, Dict, Hashable, List
+
 from .classifier import ClassifierService
 from .logger_config import get_logger
 
@@ -75,11 +76,13 @@ class ModelEvaluatorService:
                 if pred_label == true_label:
                     correct += 1
                 logger.debug(
-                    f"Sample {i + 1}/{total}: True='{true_label}', Predicted='{pred_label}'. Correct: {pred_label == true_label}"
+                    f"Sample {i + 1}/{total}: True='{true_label}', Predicted='{pred_label}'."
+                    f" Correct: {pred_label == true_label}"
                 )
             except ValueError as e:
                 logger.error(
-                    f"Failed to predict sample {i + 1} due to an error: {e}. This sample will be skipped in accuracy calculation."
+                    f"Failed to predict sample {i + 1} due to an error: {e}."
+                    f" This sample will be skipped in accuracy calculation."
                 )
                 # We decrement total because this sample could not be evaluated.
                 total -= 1

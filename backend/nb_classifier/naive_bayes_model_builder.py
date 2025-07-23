@@ -2,7 +2,9 @@
 from copy import deepcopy
 from math import log
 from typing import Any, Dict
+
 import pandas as pd
+
 from .logger_config import get_logger
 
 logger = get_logger(__name__)
@@ -91,7 +93,7 @@ class NaiveBayesModelBuilder:
             "target_counts": target_counts,
             "total_count": len(data),
         }
-        logger.debug(f"Finished calculating model counts.")
+        logger.debug("Finished calculating model counts.")
         return result
 
     def _convert_counts_to_weights(

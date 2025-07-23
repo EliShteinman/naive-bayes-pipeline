@@ -1,7 +1,7 @@
 # backend/nb_classifier/data_splitter.py
 import pandas as pd
-from typing import Tuple
 from sklearn.model_selection import train_test_split
+
 from .logger_config import get_logger
 
 logger = get_logger(__name__)

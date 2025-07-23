@@ -37,10 +37,10 @@ def prepare_model_pipeline(
     file_path: str = FILE_PATH,
     target_col: str = TARGET_COL,
     min_accuracy: float = 0.8,
-) -> Tuple[ClassifierService, dict]:
+) -> Tuple[ClassifierService, Dict[str, List[str]]]:
     """
     Builds the entire model pipeline: loads data, trains, evaluates, and
-    returns the classifier service and the raw model artifact.
+    returns the classifier service and the feature schema.
 
     Args:
         file_path (str): Path to the dataset CSV file.
@@ -48,8 +48,8 @@ def prepare_model_pipeline(
         min_accuracy (float): The minimum required accuracy for the model to be considered valid.
 
     Returns:
-        Tuple[ClassifierService, dict]: A tuple containing the ready-to-use
-                                        ClassifierService and the trained model artifact.
+        Tuple[ClassifierService, Dict[str, List[str]]]: A tuple containing the
+            ready-to-use ClassifierService and the model's feature schema.
 
     Raises:
         RuntimeError: If the model's accuracy is below the specified minimum threshold.
@@ -91,12 +91,17 @@ def prepare_model_pipeline(
 
     # 5. Check if accuracy meets the minimum threshold
     if accuracy_report["accuracy"] < min_accuracy:
-        msg = f"Model accuracy ({accuracy_report['accuracy']:.2%}) is below the minimum threshold of {min_accuracy:.2%}. Halting."
+        msg = f"Model accuracy ({accuracy_report['accuracy']:.2%})"\
+              f" is below the minimum threshold of {min_accuracy:.2%}. Halting."
         logger.error(msg)
         raise RuntimeError(msg)
 
+    # 6. Display a sample prediction
+    logger.info("Step 7: Extracting feature schema from the model")
+    schema = extract_expected_features(trained_model)
+
     logger.info("Model preparation pipeline completed successfully.")
-    return classifier, trained_model
+    return classifier, schema
 
 
 def extract_expected_features(model: dict) -> Dict[str, List[str]]:

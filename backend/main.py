@@ -4,10 +4,7 @@ from typing import Any, Dict
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request
-from nb_classifier.application_manager import (
-    extract_expected_features,
-    prepare_model_pipeline,
-)
+from nb_classifier.application_manager import prepare_model_pipeline
 from nb_classifier.logger_config import get_logger
 
 # Pydantic's BaseModel is no longer needed for the predict endpoint
@@ -29,8 +26,7 @@ async def lifespan(app: FastAPI):
     # Startup: Load the model and prepare resources
     logger.info("Server startup: Loading model and preparing application...")
     try:
-        classifier, trained_model = prepare_model_pipeline()
-        expected_features = extract_expected_features(trained_model)
+        classifier, expected_features = prepare_model_pipeline()
 
         ml_models["classifier"] = classifier
         ml_models["expected_features"] = expected_features

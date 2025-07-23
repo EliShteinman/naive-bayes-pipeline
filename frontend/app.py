@@ -7,6 +7,7 @@ builds a user input form, sends the user's data for prediction, and displays
 the result.
 """
 import os
+
 import requests
 import streamlit as st
 
@@ -45,14 +46,17 @@ schema = fetch_schema()
 # --- 3. UI and Prediction Logic ---
 if not schema:
     st.warning(
-        "Could not load model features from the backend. The service might be unavailable. Please try again later.")
+        "Could not load model features from the backend. The service might be unavailable. Please try again later."
+    )
 else:
     with st.form("prediction_form"):
         st.write("Please provide the mushroom's features:")
         user_input = {}
         # Dynamically create a selectbox for each feature
         for feature, options in schema.items():
-            user_input[feature] = st.selectbox(label=feature.replace("-", " ").title(), options=options)
+            user_input[feature] = st.selectbox(
+                label=feature.replace("-", " ").title(), options=options
+            )
 
         submitted = st.form_submit_button("Predict")
 
@@ -67,16 +71,18 @@ else:
             prediction = result.get("prediction")
 
             if prediction == "p":
-                st.error(f"Prediction: Poisonous 🤢")
+                st.error("Prediction: Poisonous 🤢")
             elif prediction == "e":
-                st.success(f"Prediction: Edible 😋")
+                st.success("Prediction: Edible 😋")
             else:
                 st.info(f"Prediction: {prediction}")
 
         except requests.exceptions.HTTPError as e:
             # Handle specific API errors (e.g., 400 Bad Request)
             error_detail = e.response.json().get("detail", "No details provided.")
-            st.error(f"API Error: {error_detail} (Status code: {e.response.status_code})")
+            st.error(
+                f"API Error: {error_detail} (Status code: {e.response.status_code})"
+            )
         except requests.exceptions.RequestException as e:
             # Handle network errors
             st.error(f"Failed to get a prediction from the backend: {e}")
