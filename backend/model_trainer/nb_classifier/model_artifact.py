@@ -25,6 +25,13 @@ class IModelArtifact(ABC):
         """Extracts and returns the feature schema from the model."""
         pass
 
+    @abstractmethod
+    def to_dict(self) -> Dict:
+        """
+        Returns a serializable dictionary representation of the model's data.
+        """
+        pass
+
 
 class NaiveBayesDictArtifact(IModelArtifact):
     """A concrete implementation of IModelArtifact that wraps a dictionary-based Naive Bayes model."""
@@ -48,3 +55,9 @@ class NaiveBayesDictArtifact(IModelArtifact):
             for feature, value_map in first_class_dict.items()
             if feature != "__prior__"
         }
+
+    def to_dict(self) -> Dict:
+        """
+        Returns the underlying model data as a dictionary for serialization.
+        """
+        return self._model
