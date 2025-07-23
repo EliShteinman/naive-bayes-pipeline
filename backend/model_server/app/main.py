@@ -1,14 +1,15 @@
 # main.py
 from contextlib import asynccontextmanager
 from typing import Any, Dict
-
+import os
+import pickle
+import requests
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request
-from nb_classifier.application_manager import prepare_model_pipeline
-from nb_classifier.logger_config import get_logger
+from .classifier import ClassifierService
+from .model_artifact import IModelArtifact
+from logger_config import get_logger
 
-# Pydantic's BaseModel is no longer needed for the predict endpoint
-# from pydantic import BaseModel
 
 logger = get_logger(__name__)
 
@@ -19,37 +20,38 @@ ml_models = {}
 # --- Lifespan Management ---
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """
-    Manages the application's lifespan. Code before 'yield' runs on startup,
-    and code after 'yield' runs on shutdown.
-    """
-    # Startup: Load the model and prepare resources
-    logger.info("Server startup: Loading model and preparing application...")
-    try:
-        classifier, expected_features = prepare_model_pipeline(
-            file_path="data/mushroom_decoded.csv", target_col="poisonous", pos_label="p"
-        )
-
-        ml_models["classifier"] = classifier
-        ml_models["expected_features"] = expected_features
-
-        logger.info("Model loaded and application is ready.")
-    except (FileNotFoundError, RuntimeError, Exception) as e:
-        logger.critical(f"A critical error occurred during startup: {e}", exc_info=True)
-        ml_models["error"] = "Model could not be loaded. Check server logs."
-
-    yield
-
-    # Shutdown: Clean up the resources
-    logger.info("Server shutdown: Clearing ML models and resources.")
-    ml_models.clear()
+    pass
+    # """
+    # Manages the application's lifespan. Code before 'yield' runs on startup,
+    # and code after 'yield' runs on shutdown.
+    # """
+    # # Startup: Load the model and prepare resources
+    # logger.info("Server startup: Loading model and preparing application...")
+    # try:
+    #     classifier, expected_features = prepare_model_pipeline(
+    #         file_path="data/mushroom_decoded.csv", target_col="poisonous", pos_label="p"
+    #     )
+    #
+    #     ml_models["classifier"] = classifier
+    #     ml_models["expected_features"] = expected_features
+    #
+    #     logger.info("Model loaded and application is ready.")
+    # except (FileNotFoundError, RuntimeError, Exception) as e:
+    #     logger.critical(f"A critical error occurred during startup: {e}", exc_info=True)
+    #     ml_models["error"] = "Model could not be loaded. Check server logs."
+    #
+    # yield
+    #
+    # # Shutdown: Clean up the resources
+    # logger.info("Server shutdown: Clearing ML models and resources.")
+    # ml_models.clear()
 
 
 # --- FastAPI App Initialization with Lifespan ---
 app = FastAPI(
-    title="Mushroom Classifier API",
-    description="An API to predict if a mushroom is poisonous or edible based on its features.",
-    version="1.0.0",
+    title="Mushroom Classifier API (Server)",
+    description="An API to predict if a mushroom is poisonous or edible.",
+    version="2.0.0",
     lifespan=lifespan,
 )
 
