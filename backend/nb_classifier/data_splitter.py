@@ -15,12 +15,12 @@ class DataSplitter:
     """
 
     def __init__(
-            self,
-            data: pd.DataFrame,
-            target_col: str,
-            test_size: float = 0.3,
-            random_state: int = 42,
-            validate_test_set: bool = True,  # <<< הוספת הפרמטר החדש >>>
+        self,
+        data: pd.DataFrame,
+        target_col: str,
+        test_size: float = 0.3,
+        random_state: int = 42,
+        validate_test_set: bool = True,  # <<< הוספת הפרמטר החדש >>>
     ):
         """
         Initializes the DataSplitter with the data and splitting configuration.
@@ -66,7 +66,9 @@ class DataSplitter:
         # 2. Optionally, validate the test set to ensure it contains only known values
         # <<< התניית הלוגיקה בפרמטר החדש >>>
         if self.validate_test_set:
-            logger.info("Validating test set to remove rows with unseen feature values.")
+            logger.info(
+                "Validating test set to remove rows with unseen feature values."
+            )
 
             # --- כל הלוגיקה המקורית שלך נשמרת כאן, בתוך תנאי ---
             feature_cols = [col for col in self.data.columns if col != self.target_col]

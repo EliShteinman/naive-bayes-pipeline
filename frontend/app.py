@@ -6,6 +6,8 @@ This app dynamically fetches the model's expected features from the backend,
 builds a user input form, sends the user's data for prediction, and displays
 the result.
 """
+import nest_asyncio
+nest_asyncio.apply()
 import os
 
 import requests

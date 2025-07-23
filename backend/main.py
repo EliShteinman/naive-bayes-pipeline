@@ -4,7 +4,6 @@ from typing import Any, Dict
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request
-
 from nb_classifier.application_manager import prepare_model_pipeline
 from nb_classifier.logger_config import get_logger
 
@@ -28,7 +27,7 @@ async def lifespan(app: FastAPI):
     logger.info("Server startup: Loading model and preparing application...")
     try:
         classifier, expected_features = prepare_model_pipeline(
-            file_path="data/mushroom_decoded.csv", target_col="poisonous"
+            file_path="data/mushroom_decoded.csv", target_col="poisonous", pos_label="p"
         )
 
         ml_models["classifier"] = classifier

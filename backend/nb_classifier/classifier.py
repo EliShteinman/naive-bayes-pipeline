@@ -18,9 +18,9 @@ class ClassifierService:
     """
 
     def __init__(
-            self,
-            model_artifact: IModelArtifact,
-            on_unseen_in_predict: UnseenPredictStrategy = "fail",  # <<< הוספת הפרמטר החדש >>>
+        self,
+        model_artifact: IModelArtifact,
+        on_unseen_in_predict: UnseenPredictStrategy = "fail",  # <<< הוספת הפרמטר החדש >>>
     ):
         """
         Initializes the ClassifierService.
@@ -34,7 +34,9 @@ class ClassifierService:
                 - "ignore_feature": Ignores the feature with the unseen value and continues prediction.
         """
         if not model_artifact:
-            msg = "ClassifierService cannot be initialized with an empty model artifact."
+            msg = (
+                "ClassifierService cannot be initialized with an empty model artifact."
+            )
             logger.error(msg)
             raise ValueError(msg)
 
@@ -65,8 +67,10 @@ class ClassifierService:
 
             for feature, value in sample.items():
                 if feature not in class_details:
-                    msg = (f"Unseen feature encountered during prediction: '{feature}'. "
-                           f"This feature was not in the training data.")
+                    msg = (
+                        f"Unseen feature encountered during prediction: '{feature}'. "
+                        f"This feature was not in the training data."
+                    )
                     logger.error(msg)
                     raise ValueError(msg)
 
@@ -74,15 +78,18 @@ class ClassifierService:
                 if value not in class_details[feature]:
                     # אם האסטרטגיה היא להיכשל (ההתנהגות המקורית)
                     if self._on_unseen_in_predict == "fail":
-                        msg = (f"Unseen value for feature '{feature}': '{value}'. "
-                               f"This value was not seen for this feature during training.")
+                        msg = (
+                            f"Unseen value for feature '{feature}': '{value}'. "
+                            f"This value was not seen for this feature during training."
+                        )
                         logger.error(msg)
                         raise ValueError(msg)
 
                     # אם האסטרטגיה היא להתעלם מהתכונה
                     elif self._on_unseen_in_predict == "ignore_feature":
                         logger.warning(
-                            f"Ignoring unseen value '{value}' for feature '{feature}' during prediction, as per strategy."
+                            f"Ignoring unseen value '{value}' for feature '{feature}'"
+                            f" during prediction, as per strategy."
                         )
                         # מדלגים על התכונה הזו וממשיכים לתכונה הבאה בלולאה
                         continue

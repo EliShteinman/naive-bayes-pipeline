@@ -1,5 +1,5 @@
 # nb_classifier/data_cleaner.py
-from typing import List, Optional, Literal, Any
+from typing import Any, List, Literal, Optional
 
 import pandas as pd
 
@@ -20,11 +20,11 @@ class DataCleaner:
     """
 
     def __init__(
-            self,
-            columns_to_drop: Optional[List[str]] = None,
-            remove_constants: bool = True,
-            missing_value_strategy: Optional[MissingValueStrategy] = None,
-            fill_value: Optional[Any] = None,
+        self,
+        columns_to_drop: Optional[List[str]] = None,
+        remove_constants: bool = True,
+        missing_value_strategy: Optional[MissingValueStrategy] = None,
+        fill_value: Optional[Any] = None,
     ):
         """
         Initializes the DataCleaner with a specific cleaning configuration.
@@ -46,7 +46,9 @@ class DataCleaner:
 
         # A check to ensure that if the user wants to fill, they provide a value
         if self.missing_value_strategy == "fill" and self.fill_value is None:
-            raise ValueError("fill_value must be provided when missing_value_strategy is 'fill'")
+            raise ValueError(
+                "fill_value must be provided when missing_value_strategy is 'fill'"
+            )
 
         logger.info(
             f"DataCleaner initialized. Configuration: "
@@ -72,7 +74,9 @@ class DataCleaner:
         # Step 1: Drop specified columns
         if self.columns_to_drop:
             logger.debug(f"Dropping specified columns: {self.columns_to_drop}")
-            cleaned_data = cleaned_data.drop(columns=self.columns_to_drop, errors="ignore")
+            cleaned_data = cleaned_data.drop(
+                columns=self.columns_to_drop, errors="ignore"
+            )
 
         # Step 2: Remove constant columns
         if self.remove_constants:
@@ -86,20 +90,30 @@ class DataCleaner:
 
         # Step 3: Handle missing values based on the configured strategy
         if self.missing_value_strategy:
-            logger.info(f"Handling missing values with strategy: '{self.missing_value_strategy}'")
+            logger.info(
+                f"Handling missing values with strategy: '{self.missing_value_strategy}'"
+            )
 
             if self.missing_value_strategy == "drop_row":
                 rows_before = len(cleaned_data)
                 cleaned_data.dropna(inplace=True)
                 rows_after = len(cleaned_data)
                 if rows_before > rows_after:
-                    logger.warning(f"Dropped {rows_before - rows_after} rows with missing values.")
+                    logger.warning(
+                        f"Dropped {rows_before - rows_after} rows with missing values."
+                    )
 
             elif self.missing_value_strategy == "fill":
-                logger.info(f"Attempting to fill missing values with: {self.fill_value}")
+                logger.info(
+                    f"Attempting to fill missing values with: {self.fill_value}"
+                )
 
                 # If fill_value is a pandas method keyword (e.g., "mean")
-                if isinstance(self.fill_value, str) and self.fill_value in ("mean", "median", "mode"):
+                if isinstance(self.fill_value, str) and self.fill_value in (
+                    "mean",
+                    "median",
+                    "mode",
+                ):
                     for col in cleaned_data.columns:
                         if cleaned_data[col].isnull().any():
                             # For numeric columns

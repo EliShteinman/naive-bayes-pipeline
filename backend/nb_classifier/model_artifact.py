@@ -1,6 +1,6 @@
 # nb_classifier/model_artifact.py
-from typing import Any, Dict, List
 from abc import ABC, abstractmethod
+from typing import Any, Dict, List
 
 
 class IModelArtifact(ABC):
@@ -24,6 +24,7 @@ class IModelArtifact(ABC):
     def get_schema(self) -> Dict[str, List[str]]:
         """Extracts and returns the feature schema from the model."""
         pass
+
 
 class NaiveBayesDictArtifact(IModelArtifact):
     """A concrete implementation of IModelArtifact that wraps a dictionary-based Naive Bayes model."""

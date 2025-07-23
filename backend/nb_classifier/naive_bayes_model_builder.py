@@ -31,7 +31,7 @@ class NaiveBayesModelBuilder:
         )
 
     def build_model(
-            self, train_data: pd.DataFrame, target_col: str, force_smoothing: bool = False
+        self, train_data: pd.DataFrame, target_col: str, force_smoothing: bool = False
     ) -> IModelArtifact:
         """
         Orchestrates the model building process. This is the single public entry point.
@@ -92,7 +92,7 @@ class NaiveBayesModelBuilder:
         return result
 
     def _convert_counts_to_weights(
-            self, counts_model: dict, force_smoothing: bool
+        self, counts_model: dict, force_smoothing: bool
     ) -> Dict[str, Any]:
         """
         Converts a model of raw counts into log-probabilities, applying smoothing.
