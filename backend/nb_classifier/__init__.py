@@ -25,19 +25,15 @@ __all__ = [
     "prepare_model_pipeline",
     "ClassifierService",
     "ModelEvaluatorService",
-
     # Data Handling Components
     "DataHandler",
     "DataCleaner",
     "DataSplitter",
-
     # Model Building Components
     "NaiveBayesModelBuilder",
-
     # Model Artifact Interface (important for type hinting and extension)
     "IModelArtifact",
     "NaiveBayesDictArtifact",
-
     # Utilities
     # "DataFrameUtils",  <-- שורה זו נמחקה
     "get_logger",

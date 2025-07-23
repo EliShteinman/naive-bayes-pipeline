@@ -55,10 +55,7 @@ def prepare_model_pipeline(
     # Note: To handle missing values, we could add:
     # missing_value_strategy="fill", fill_value="Unknown"
     logger.info("Step 2: Cleaning data")
-    data_cleaner = DataCleaner(
-        columns_to_drop=['stalk-root'],
-        remove_constants=True
-    )
+    data_cleaner = DataCleaner(columns_to_drop=["stalk-root"], remove_constants=True)
     data_cleaned = data_cleaner.clean(data_raw)
 
     # Step 3: Split data
@@ -70,7 +67,7 @@ def prepare_model_pipeline(
         target_col=target_col,
         test_size=0.3,
         random_state=42,
-        validate_test_set=True
+        validate_test_set=True,
     )
     train_df, test_df = data_splitter.split_data()
 
@@ -87,14 +84,17 @@ def prepare_model_pipeline(
         model_artifact=trained_model_artifact,
         test_data=test_df,
         target_col=target_col,
-        pos_label=pos_label
+        pos_label=pos_label,
     )
 
     display_accuracy_report(accuracy_report, pos_label=pos_label)
 
     # Step 6: Check if accuracy meets the minimum threshold
     if accuracy_report["accuracy"] < min_accuracy:
-        msg = f"Model accuracy ({accuracy_report['accuracy']:.2%}) is below the minimum threshold of {min_accuracy:.2%}. Halting."
+        msg = (
+            f"Model accuracy ({accuracy_report['accuracy']:.2%})"
+            f" is below the minimum threshold of {min_accuracy:.2%}. Halting."
+        )
         logger.error(msg)
         raise RuntimeError(msg)
 

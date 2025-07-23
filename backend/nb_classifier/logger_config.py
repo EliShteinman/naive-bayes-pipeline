@@ -11,7 +11,9 @@ LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 
 # --- Formats and Constants ---
 CONSOLE_FORMAT = "%(asctime)s - %(name)-20s - %(levelname)-8s - %(message)s"
-FILE_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(module)s:%(lineno)d - %(message)s"
+FILE_FORMAT = (
+    "%(asctime)s - %(name)s - %(levelname)s - %(module)s:%(lineno)d - %(message)s"
+)
 LOG_FILE = "backend_app.log"
 
 
@@ -37,22 +39,28 @@ def get_logger(name: str) -> logging.Logger:
             print(f"Warning: Invalid LOG_LEVEL '{LOG_LEVEL}'. Defaulting to INFO.")
             console_handler.setLevel(logging.INFO)
 
-        console_handler.setFormatter(logging.Formatter(CONSOLE_FORMAT, datefmt="%H:%M:%S"))
+        console_handler.setFormatter(
+            logging.Formatter(CONSOLE_FORMAT, datefmt="%H:%M:%S")
+        )
         logger.addHandler(console_handler)
 
         # --- File Handler (Conditional) ---
         if LOG_TO_FILE:
             try:
                 # Writes logs to a file. Mode 'a' appends to the file.
-                file_handler = logging.FileHandler(LOG_FILE, mode='a')
-                file_handler.setLevel(logging.WARNING)  # Usually, we want only important logs in files
+                file_handler = logging.FileHandler(LOG_FILE, mode="a")
+                file_handler.setLevel(
+                    logging.WARNING
+                )  # Usually, we want only important logs in files
                 file_handler.setFormatter(logging.Formatter(FILE_FORMAT))
                 logger.addHandler(file_handler)
                 # Use a one-time print to inform the user, not a logger call
                 print(f"Logging to file enabled: {LOG_FILE}")
             except (IOError, PermissionError) as e:
                 # A one-time print is better here, as logger might be in a broken state
-                print(f"Warning: Could not configure file logging to {LOG_FILE}. Error: {e}")
+                print(
+                    f"Warning: Could not configure file logging to {LOG_FILE}. Error: {e}"
+                )
         else:
             print("Logging to file is disabled.")
 
