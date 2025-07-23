@@ -12,7 +12,7 @@ from .classifier import ClassifierService
 from .data_cleaner import DataCleaner
 from .data_handler import DataHandler
 from .data_splitter import DataSplitter
-from .df_utiles import DataFrameUtils
+# from .df_utiles import DataFrameUtils  <-- שורה זו נמחקה
 from .logger_config import get_logger
 from .model_artifact import IModelArtifact, NaiveBayesDictArtifact
 from .model_evaluator import ModelEvaluatorService
@@ -39,6 +39,6 @@ __all__ = [
     "NaiveBayesDictArtifact",
 
     # Utilities
-    "DataFrameUtils",
+    # "DataFrameUtils",  <-- שורה זו נמחקה
     "get_logger",
 ]

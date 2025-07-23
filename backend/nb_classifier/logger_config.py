@@ -1,4 +1,4 @@
-# backend/nb_classifier/logger_config.py
+# nb_classifier/logger_config.py
 import logging
 import os
 import sys

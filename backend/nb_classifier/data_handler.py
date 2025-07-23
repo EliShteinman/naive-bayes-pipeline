@@ -1,4 +1,4 @@
-# backend/nb_classifier/data_handler.py
+# nb_classifier/data_handler.py
 from typing import Literal
 
 import pandas as pd

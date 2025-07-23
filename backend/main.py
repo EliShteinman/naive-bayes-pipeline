@@ -1,4 +1,4 @@
-# backend/main.py
+# main.py
 from contextlib import asynccontextmanager
 from typing import Any, Dict
 

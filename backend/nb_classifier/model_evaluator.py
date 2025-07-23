@@ -1,7 +1,8 @@
-# backend/nb_classifier/model_evaluator.py
-from typing import Any, Dict, Hashable, List
+# nb_classifier/model_evaluator.py
+from typing import Any, Dict, Hashable
+import pandas as pd
 
-from .classifier import ClassifierService
+from .model_artifact import IModelArtifact
 from .logger_config import get_logger
 
 logger = get_logger(__name__)
@@ -9,100 +10,106 @@ logger = get_logger(__name__)
 
 class ModelEvaluatorService:
     """
-    Service for evaluating the performance of a ClassifierService instance.
+    A self-contained service for evaluating the performance of a model artifact
+    on a test dataset. It uses efficient pandas operations for prediction.
     """
 
-    def __init__(self, classifier: ClassifierService):
+    @staticmethod
+    def _predict_single_row(row: pd.Series, model_artifact: IModelArtifact) -> Any:
         """
-        Initializes the ModelEvaluatorService.
-
-        Args:
-            classifier (ClassifierService): An initialized classifier instance
-                                            that will be evaluated.
-
-        Raises:
-            ValueError: If the classifier is not provided.
+        A helper function to predict a single row (pd.Series).
+        Designed to be used with df.apply().
         """
-        if not classifier:
-            logger.error(
-                "ModelEvaluatorService must be initialized with a ClassifierService instance."
-            )
-            raise ValueError(
-                "ModelEvaluatorService must be initialized with a ClassifierService instance."
-            )
-        self._classifier = classifier
-        logger.info("ModelEvaluatorService initialized.")
+        sample = row.to_dict()
+        best_class = None
+        best_log_prob = float("-inf")
 
+        try:
+            for target_value in model_artifact.get_all_class_labels():
+                class_details = model_artifact.get_prediction_details(target_value)
+                if not class_details:
+                    continue
+
+                log_prob = class_details["__prior__"]
+
+                for feature, value in sample.items():
+                    if feature not in class_details:
+                        raise ValueError(f"Feature '{feature}' not in model artifact.")
+                    if value not in class_details[feature]:
+                        raise ValueError(f"Value '{value}' for feature '{feature}' not in model artifact.")
+
+                    log_prob += class_details[feature][value]
+
+            if log_prob > best_log_prob:
+                best_log_prob = log_prob
+                best_class = target_value
+
+            return best_class
+
+        except ValueError as e:
+            logger.error(f"Could not predict for sample: {sample}. Error: {e}")
+            return None
+
+    @staticmethod
     def run_evaluation(
-        self, test_data: List[dict[Hashable, Any]], target_col: str
+            model_artifact: IModelArtifact,
+            test_data: pd.DataFrame,
+            target_col: str,
+            pos_label: Any
     ) -> Dict[str, Any]:
         """
-        Runs the evaluation process on a test dataset.
-
-        Iterates through the test data, makes a prediction for each sample,
-        compares it to the true label, and calculates the overall accuracy.
-
-        Args:
-            test_data (List[dict[Hashable, Any]]): A list of dictionaries, where
-                                                   each dictionary is a test sample.
-            target_col (str): The name of the column containing the true labels.
-
-        Returns:
-            Dict[str, Any]: A report dictionary containing accuracy, total samples,
-                            correct predictions, and incorrect predictions.
+        Runs the full evaluation process on a test DataFrame using a model artifact.
+        This method uses df.apply() for efficient batch prediction.
         """
-        logger.info(f"Starting model evaluation on {len(test_data)} samples.")
+        logger.info(f"Starting self-contained, efficient model evaluation on {len(test_data)} samples.")
 
-        if not test_data:
-            logger.warning(
-                "Evaluation requested on an empty test dataset. Returning zero accuracy."
-            )
+        if test_data.empty:
+            logger.warning("Evaluation requested on an empty test dataset.")
             return {
-                "accuracy": 0,
-                "total_samples": 0,
-                "correct_predictions": 0,
-                "incorrect_predictions": 0,
+                "accuracy": 0, "precision": 0, "recall": 0, "f1_score": 0,
+                "total_samples": 0, "correct_predictions": 0, "incorrect_predictions": 0
             }
 
-        correct = 0
-        total = len(test_data)
+        true_labels = test_data[target_col]
+        features_df = test_data.drop(columns=[target_col])
 
-        for i, row in enumerate(test_data):
-            true_label = row[target_col]
-            sample = {k: v for k, v in row.items() if k != target_col}
+        predicted_labels = features_df.apply(
+            ModelEvaluatorService._predict_single_row,
+            axis=1,
+            model_artifact=model_artifact
+        )
 
-            try:
-                pred_label = self._classifier.predict(sample)["prediction"]
-                if pred_label == true_label:
-                    correct += 1
-                logger.debug(
-                    f"Sample {i + 1}/{total}: True='{true_label}', Predicted='{pred_label}'."
-                    f" Correct: {pred_label == true_label}"
-                )
-            except ValueError as e:
-                logger.error(
-                    f"Failed to predict sample {i + 1} due to an error: {e}."
-                    f" This sample will be skipped in accuracy calculation."
-                )
-                # We decrement total because this sample could not be evaluated.
-                total -= 1
 
-        if total == 0:
-            logger.warning("No samples could be evaluated. Returning zero accuracy.")
-            return {
-                "accuracy": 0,
-                "total_samples": len(test_data),
-                "correct_predictions": 0,
-                "incorrect_predictions": len(test_data),
-            }
+        valid_indices = predicted_labels.notna()
+        true_labels_filtered = true_labels[valid_indices]
+        predicted_labels_filtered = predicted_labels[valid_indices]
 
-        accuracy = correct / total
+        if len(true_labels_filtered) == 0:
+            logger.error("No samples could be predicted. Cannot evaluate.")
+            return {"accuracy": 0, "precision": 0, "recall": 0, "f1_score": 0, "total_samples": len(test_data)}
+
+        total_samples_evaluated = len(true_labels_filtered)
+
+        tp = ((predicted_labels_filtered == pos_label) & (true_labels_filtered == pos_label)).sum()
+        fp = ((predicted_labels_filtered == pos_label) & (true_labels_filtered != pos_label)).sum()
+        tn = ((predicted_labels_filtered != pos_label) & (true_labels_filtered != pos_label)).sum()
+        fn = ((predicted_labels_filtered != pos_label) & (true_labels_filtered == pos_label)).sum()
+
+        correct_predictions = tp + tn
+        accuracy = correct_predictions / total_samples_evaluated if total_samples_evaluated > 0 else 0
+        precision = tp / (tp + fp) if (tp + fp) > 0 else 0
+        recall = tp / (tp + fn) if (tp + fn) > 0 else 0
+        f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+
         report = {
             "accuracy": accuracy,
-            "total_samples": total,
-            "correct_predictions": correct,
-            "incorrect_predictions": total - correct,
+            "precision": precision,
+            "recall": recall,
+            "f1_score": f1_score,
+            "total_samples": total_samples_evaluated,
+            "correct_predictions": int(correct_predictions),
+            "incorrect_predictions": int(total_samples_evaluated - correct_predictions),
         }
 
-        logger.info(f"Evaluation finished. Accuracy: {accuracy:.2%}")
+        logger.info(f"Self-contained evaluation finished. Accuracy: {accuracy:.2%}, F1-Score: {f1_score:.2f}")
         return report
