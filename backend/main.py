@@ -26,7 +26,10 @@ async def lifespan(app: FastAPI):
     # Startup: Load the model and prepare resources
     logger.info("Server startup: Loading model and preparing application...")
     try:
-        classifier, expected_features = prepare_model_pipeline()
+        classifier, expected_features = prepare_model_pipeline(
+            file_path="data/mushroom_decoded.csv",
+            target_col="poisonous"
+        )
 
         ml_models["classifier"] = classifier
         ml_models["expected_features"] = expected_features

@@ -1,5 +1,7 @@
 # backend/nb_classifier/application_manager.py
 from typing import Any, Dict, List, Tuple
+from functools import partial
+import pandas as pd
 
 from .classifier import ClassifierService
 from .data_cleaner import DataCleaner
@@ -12,19 +14,40 @@ from .naive_bayes_model_builder import NaiveBayesModelBuilder
 
 logger = get_logger(__name__)
 
-# --- Constants ---
-FILE_PATH = "data/mushroom_decoded.csv"
-TARGET_COL = "poisonous"
 
+# --- Reusable, Generic Cleaning Functions ---
+# These functions define individual, reusable cleaning operations.
+
+def drop_specified_columns(df: pd.DataFrame, columns_to_drop: List[str]) -> pd.DataFrame:
+    """A generic cleaning step to drop a list of columns."""
+    logger.info(f"Attempting to drop columns: {columns_to_drop}")
+    return df.drop(columns=columns_to_drop, errors="ignore")
+
+
+def remove_columns_with_single_unique_value(df: pd.DataFrame) -> pd.DataFrame:
+    """A generic cleaning step to remove columns that have no variance (constant columns)."""
+    cols_before = set(df.columns)
+    # The .loc[:, df.nunique() > 1] syntax is a concise way to select columns
+    # where the number of unique values is greater than 1.
+    cleaned_df = df.loc[:, df.nunique() > 1]
+    cols_after = set(cleaned_df.columns)
+
+    removed_cols = cols_before - cols_after
+    if removed_cols:
+        logger.info(f"Removed constant columns with no variance: {sorted(list(removed_cols))}")
+    return cleaned_df
+
+
+# --- Utility Functions (display_... functions are unchanged) ---
 
 def display_prediction(sample: Dict, prediction: Any):
-    """Utility function to print a prediction result to the console."""
+    # ... (code unchanged)
     print(f"\nFor sample: {sample}")
     print(f"The model predicts: {prediction}")
 
 
 def display_accuracy_report(report: Dict):
-    """Utility function to print a formatted model evaluation report."""
+    # ... (code unchanged)
     logger.info("--- Model Evaluation Report ---")
     logger.info(f"Accuracy: {report['accuracy']:.2%}")
     logger.info(f"Total samples tested: {report['total_samples']}")
@@ -33,52 +56,58 @@ def display_accuracy_report(report: Dict):
     logger.info("-----------------------------")
 
 
+# --- Main Pipeline Orchestrator ---
+
 def prepare_model_pipeline(
-    file_path: str = FILE_PATH,
-    target_col: str = TARGET_COL,
-    min_accuracy: float = 0.8,
+        file_path: str,
+        target_col: str,
+        min_accuracy: float = 0.8,
 ) -> Tuple[ClassifierService, Dict[str, List[str]]]:
     """
-    Builds the entire model pipeline: loads data, trains, evaluates, and
-    returns the classifier service and the feature schema.
-
-    Args:
-        file_path (str): Path to the dataset CSV file.
-        target_col (str): The name of the target column.
-        min_accuracy (float): The minimum required accuracy for the model to be considered valid.
-
-    Returns:
-        Tuple[ClassifierService, Dict[str, List[str]]]: A tuple containing the
-            ready-to-use ClassifierService and the model's feature schema.
-
-    Raises:
-        RuntimeError: If the model's accuracy is below the specified minimum threshold.
+    Builds the entire model pipeline by orchestrating data loading, cleaning,
+    splitting, model building, and evaluation.
+    ... (rest of docstring) ...
     """
     logger.info("Starting full model preparation pipeline...")
 
-    # 1. Load, clean, and split the data
-    logger.info(f"Step 1: Loading data from '{file_path}'")
-    data_handler = DataHandler(data_path=file_path)
-    data_raw = data_handler.load_data()
+    # Step 1: Load data using the self-sufficient DataHandler
+    logger.info(f"Step 1: Preparing to load data from '{file_path}'")
+    try:
+        data_handler = DataHandler(data_path=file_path)
+        data_raw = data_handler.load_data()
+    except (ValueError, FileNotFoundError) as e:
+        logger.error(f"Data loading failed: {e}")
+        raise
 
-    logger.info("Step 2: Cleaning data")
-    data_cleaner = DataCleaner(data_raw)
-    data_cleaned = data_cleaner.clean()
+    # Step 2: Configure and run the data cleaning pipeline
+    logger.info("Step 2: Building and running the cleaning pipeline")
+
+    # Define the specific "recipe" of cleaning steps for the mushroom dataset.
+    # This makes the cleaning process explicit and configurable.
+    mushroom_cleaning_recipe = [
+        # Create a specialized function on-the-fly to drop 'stalk-root'
+        partial(drop_specified_columns, columns_to_drop=['stalk-root']),
+        # The second step is a direct reference to the function
+        remove_columns_with_single_unique_value
+    ]
+
+    # Initialize the generic cleaner with our specific recipe
+    data_cleaner = DataCleaner(cleaning_steps=mushroom_cleaning_recipe)
+    data_cleaned = data_cleaner.clean(data_raw)
+
+    # --- The rest of the pipeline continues as before ---
 
     logger.info(f"Step 3: Splitting data with '{target_col}' as target")
     data_splitter = DataSplitter(data_cleaned, target_col=target_col)
     train_df, test_df = data_splitter.split_data(test_size=0.3, random_state=42)
 
-    # 2. Build the Naive Bayes model
     logger.info("Step 4: Building the Naive Bayes model")
     model_builder = NaiveBayesModelBuilder(alpha=1.0)
     trained_model = model_builder.build_model(train_df, target_col=target_col)
 
-    # 3. Wrap the model in the ClassifierService
     logger.info("Step 5: Wrapping model in ClassifierService")
     classifier = ClassifierService(model_artifact=trained_model)
 
-    # 4. Evaluate performance
     logger.info("Step 6: Evaluating model performance")
     evaluator = ModelEvaluatorService(classifier=classifier)
     list_test_data = DataFrameUtils.get_data_as_list_of_dicts(test_df)
@@ -86,17 +115,13 @@ def prepare_model_pipeline(
         test_data=list_test_data, target_col=target_col
     )
 
-    # Display the results using the utility function
     display_accuracy_report(accuracy_report)
 
-    # 5. Check if accuracy meets the minimum threshold
     if accuracy_report["accuracy"] < min_accuracy:
-        msg = f"Model accuracy ({accuracy_report['accuracy']:.2%})"\
-              f" is below the minimum threshold of {min_accuracy:.2%}. Halting."
+        msg = f"Model accuracy ({accuracy_report['accuracy']:.2%}) is below the minimum threshold of {min_accuracy:.2%}. Halting."
         logger.error(msg)
         raise RuntimeError(msg)
 
-    # 6. Display a sample prediction
     logger.info("Step 7: Extracting feature schema from the model")
     schema = extract_expected_features(trained_model)
 
@@ -105,22 +130,8 @@ def prepare_model_pipeline(
 
 
 def extract_expected_features(model: dict) -> Dict[str, List[str]]:
-    """
-    Extracts the feature schema (features and their possible values) from a trained model artifact.
-
-    This is used to inform the frontend or API clients about the expected input format.
-
-    Args:
-        model (dict): The trained model artifact.
-
-    Returns:
-        Dict[str, List[str]]: A dictionary where keys are feature names and values are sorted
-                              lists of their possible values.
-    """
-    # Get the first class dictionary from the model (e.g., 'poisonous')
+    # ... (code unchanged)
     first_class_dict = next(iter(model.values()))
-
-    # Extract features and their value maps, excluding the internal '__prior__' key
     return {
         feature: sorted(value_map.keys())
         for feature, value_map in first_class_dict.items()
