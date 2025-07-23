@@ -33,6 +33,7 @@ WORKDIR /app
 
 # Create a non-root user and group for security
 RUN addgroup --system app && adduser --system --group app
+RUN chown -R app:app /app
 USER app
 
 # Copy the virtual environment from the builder stage
