@@ -1,9 +1,10 @@
-# backend/nb_classifier/__init__.py
+# nb_classifier/__init__.py
 """
-This package contains all the modules for the Naive Bayes classifier.
+This package contains all the modules for the Naive Bayes classifier pipeline.
 
-It includes components for data handling, cleaning, splitting, model building,
-evaluation, and the classifier service itself.
+It includes components for data handling, cleaning, model building,
+evaluation, and the classifier service itself. It exposes the main pipeline
+function and the core service classes for external use.
 """
 
 from .application_manager import prepare_model_pipeline
@@ -13,18 +14,31 @@ from .data_handler import DataHandler
 from .data_splitter import DataSplitter
 from .df_utiles import DataFrameUtils
 from .logger_config import get_logger
+from .model_artifact import IModelArtifact, NaiveBayesDictArtifact
 from .model_evaluator import ModelEvaluatorService
 from .naive_bayes_model_builder import NaiveBayesModelBuilder
 
-# You can define __all__ to control what 'from nb_classifier import *' imports
+# Defines the public API of the 'nb_classifier' package.
+# When a user does 'from nb_classifier import *', only these names will be imported.
 __all__ = [
-    "get_logger",
+    # Core Services & Pipeline
+    "prepare_model_pipeline",
+    "ClassifierService",
+    "ModelEvaluatorService",
+
+    # Data Handling Components
     "DataHandler",
     "DataCleaner",
     "DataSplitter",
-    "DataFrameUtils",
+
+    # Model Building Components
     "NaiveBayesModelBuilder",
-    "ModelEvaluatorService",
-    "ClassifierService",
-    "prepare_model_pipeline",
+
+    # Model Artifact Interface (important for type hinting and extension)
+    "IModelArtifact",
+    "NaiveBayesDictArtifact",
+
+    # Utilities
+    "DataFrameUtils",
+    "get_logger",
 ]

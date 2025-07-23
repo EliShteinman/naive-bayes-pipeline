@@ -45,6 +45,8 @@ COPY . .
 
 # Make the virtual environment's Python the default
 ENV PATH="/opt/venv/bin:$PATH"
+ENV LOG_TO_FILE=false
+ENV LOG_LEVEL=INFO
 
 # Expose the port the app runs on
 EXPOSE 8000
