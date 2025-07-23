@@ -65,14 +65,18 @@ class ClassifierService:
             # Add the log likelihood for each feature in the sample
             for feature, value in sample.items():
                 if feature not in self._model[target_value]:
-                    msg = f"Unseen feature encountered during prediction: '{feature}'."\
-                          f" This feature was not in the training data."
+                    msg = (
+                        f"Unseen feature encountered during prediction: '{feature}'."
+                        f" This feature was not in the training data."
+                    )
                     logger.error(msg)
                     raise ValueError(msg)
 
                 if value not in self._model[target_value][feature]:
-                    msg = f"Unseen value for feature '{feature}': '{value}'."\
-                          f" This value was not seen for this feature during training."
+                    msg = (
+                        f"Unseen value for feature '{feature}': '{value}'."
+                        f" This value was not seen for this feature during training."
+                    )
                     logger.error(msg)
                     raise ValueError(msg)
 
