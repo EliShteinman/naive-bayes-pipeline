@@ -1,4 +1,4 @@
-# nb_classifier/model_evaluator.py
+# app/model_evaluator.py
 from typing import Any, Dict
 
 import pandas as pd

@@ -1,4 +1,4 @@
-# nb_classifier/data_cleaner.py
+# app/data_cleaner.py
 from typing import Any, List, Literal, Optional
 
 import pandas as pd

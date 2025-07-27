@@ -1,4 +1,4 @@
-# nb_classifier/__init__.py
+# app/__init__.py
 """
 This package contains all the modules for the Naive Bayes classifier pipeline.
 
@@ -18,8 +18,8 @@ from .model_artifact import IModelArtifact, NaiveBayesDictArtifact
 from .model_evaluator import ModelEvaluatorService
 from .naive_bayes_model_builder import NaiveBayesModelBuilder
 
-# Defines the public API of the 'nb_classifier' package.
-# When a user does 'from nb_classifier import *', only these names will be imported.
+# Defines the public API of the 'app' package.
+# When a user does 'from app import *', only these names will be imported.
 __all__ = [
     # Core Services & Pipeline
     "prepare_model_pipeline",
@@ -35,6 +35,5 @@ __all__ = [
     "IModelArtifact",
     "NaiveBayesDictArtifact",
     # Utilities
-    # "DataFrameUtils",  <-- שורה זו נמחקה
     "get_logger",
 ]

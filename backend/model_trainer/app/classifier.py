@@ -1,4 +1,4 @@
-# nb_classifier/classifier.py
+# app/classifier.py
 from typing import Any, Dict, Hashable, Literal
 
 from .logger_config import get_logger

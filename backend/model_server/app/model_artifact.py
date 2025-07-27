@@ -1,4 +1,4 @@
-# nb_classifier/model_artifact.py
+# app/model_artifact.py
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List
 

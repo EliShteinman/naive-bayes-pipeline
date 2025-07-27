@@ -1,4 +1,4 @@
-# nb_classifier/data_splitter.py
+# app/data_splitter.py
 import pandas as pd
 from sklearn.model_selection import train_test_split
 

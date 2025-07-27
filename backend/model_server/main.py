@@ -6,9 +6,7 @@ import pickle
 import requests
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request
-from .classifier import ClassifierService
-from .model_artifact import IModelArtifact
-from logger_config import get_logger
+from app import *
 
 
 logger = get_logger(__name__)

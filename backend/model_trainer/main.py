@@ -5,9 +5,9 @@ from typing import Any, Dict
 import uvicorn
 from fastapi import FastAPI, HTTPException
 
-from nb_classifier.application_manager import prepare_model_pipeline
-from nb_classifier.model_artifact import IModelArtifact, NaiveBayesDictArtifact
-from nb_classifier.logger_config import get_logger
+from app.application_manager import prepare_model_pipeline
+from app.model_artifact import IModelArtifact, NaiveBayesDictArtifact
+from app.logger_config import get_logger
 
 logger = get_logger(__name__)
 

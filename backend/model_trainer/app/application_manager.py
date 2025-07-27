@@ -1,4 +1,4 @@
-# nb_classifier/application_manager.py
+# app/application_manager.py
 from typing import Any, Dict
 
 from .data_cleaner import DataCleaner

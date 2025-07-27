@@ -1,4 +1,4 @@
-# nb_classifier/naive_bayes_model_builder.py
+# app/naive_bayes_model_builder.py
 from copy import deepcopy
 from math import log
 from typing import Any, Dict
