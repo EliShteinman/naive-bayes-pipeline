@@ -1,21 +1,16 @@
-import os
 from contextlib import asynccontextmanager
 from typing import Any, Dict, List, Type
 
 import requests
 import uvicorn
 from app import get_logger, model_artifact
-from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel, Field, create_model
 
-# Load .env from the current directory
-load_dotenv()
+from . import config
 
 logger = get_logger(__name__)
 
-# --- Configuration Loading ---
-MODEL_URL = os.getenv("MODEL_URL")
 
 # --- Global objects to be managed by lifespan ---
 ml_models = {}
@@ -55,14 +50,14 @@ def create_dynamic_model_from_schema(
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Server service startup...")
-    if not MODEL_URL:
+    if not config.MODEL_URL:
         ml_models["error"] = "MODEL_URL is not configured. Cannot load model."
         logger.critical(ml_models["error"])
         yield
         return
 
     try:
-        load_model_from_url(MODEL_URL)
+        load_model_from_url(config.MODEL_URL)
         if "classifier" in ml_models:
             schema = ml_models["expected_features"]
             DynamicFeatureModel = create_dynamic_model_from_schema(

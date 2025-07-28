@@ -64,7 +64,6 @@ class DataSplitter:
         )
 
         # 2. Optionally, validate the test set to ensure it contains only known values
-        # <<< התניית הלוגיקה בפרמטר החדש >>>
         if self.validate_test_set:
             logger.info(
                 "Validating test set to remove rows with unseen feature values."

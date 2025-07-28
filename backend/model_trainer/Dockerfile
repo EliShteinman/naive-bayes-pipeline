@@ -31,6 +31,7 @@ COPY ../app/naive_bayes_model_builder.py ./app/
 COPY ../app/model_artifact.py ./app/
 
 COPY __init__.py ./
+COPY config.py ./
 COPY main.py ./
 COPY application_manager.py ./
 

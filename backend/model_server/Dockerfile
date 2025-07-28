@@ -26,6 +26,7 @@ COPY ../app/logger_config.py ./app/
 COPY ../app/classifier.py ./app/
 
 COPY __init__.py ./
+COPY config.py ./
 COPY main.py ./
 
 ENV PATH="/opt/venv/bin:$PATH" \

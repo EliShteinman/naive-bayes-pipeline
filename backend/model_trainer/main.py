@@ -1,28 +1,14 @@
-import os
 from contextlib import asynccontextmanager
 from typing import Any, Dict
 
 import uvicorn
 from app import IModelArtifact, NaiveBayesDictArtifact, get_logger
 from application_manager import prepare_model_pipeline
-from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 
-# Load .env from the current directory
-load_dotenv()
+from . import config
 
 logger = get_logger(__name__)
-
-# --- Configuration Loading ---
-FILE_PATH = os.getenv("DATA_FILE_PATH")
-TARGET_COL = os.getenv("TARGET_COL")
-POS_LABEL = os.getenv("POS_LABEL")
-TEST_SIZE = float(os.getenv("TEST_SIZE", 0.3))
-RANDOM_STATE = int(os.getenv("RANDOM_STATE", 42))
-VALIDATE_TEST_SET = os.getenv("VALIDATE_TEST_SET", "true").lower() == "true"
-MIN_ACCURACY = float(os.getenv("MIN_ACCURACY", 0.8))
-COLUMNS_TO_DROP = os.getenv("COLUMNS_TO_DROP", "").split(",")
-ALPHA = float(os.getenv("ALPHA", 1.0))
 
 # --- Global state ---
 model_store = {}
@@ -31,7 +17,7 @@ model_store = {}
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Trainer service startup: Starting model training pipeline...")
-    if not all([FILE_PATH, TARGET_COL, POS_LABEL]):
+    if not all([config.FILE_PATH, config.TARGET_COL, config.POS_LABEL]):
         model_store["error"] = (
             "Critical configuration (DATA_FILE_PATH, TARGET_COL, POS_LABEL) is missing."
         )
@@ -41,15 +27,15 @@ async def lifespan(app: FastAPI):
 
     try:
         trained_model_artifact: IModelArtifact = prepare_model_pipeline(
-            file_path=FILE_PATH,
-            target_col=TARGET_COL,
-            pos_label=POS_LABEL,
-            test_size=TEST_SIZE,
-            random_state=RANDOM_STATE,
-            validate_test_set=VALIDATE_TEST_SET,
-            min_accuracy=MIN_ACCURACY,
-            columns_to_drop=COLUMNS_TO_DROP,
-            alpha=ALPHA,
+            file_path=config.FILE_PATH,
+            target_col=config.TARGET_COL,
+            pos_label=config.POS_LABEL,
+            test_size=config.TEST_SIZE,
+            random_state=config.RANDOM_STATE,
+            validate_test_set=config.VALIDATE_TEST_SET,
+            min_accuracy=config.MIN_ACCURACY,
+            columns_to_drop=config.COLUMNS_TO_DROP,
+            alpha=config.ALPHA,
         )
         model_store["artifact"] = trained_model_artifact
         logger.info("Model training pipeline completed successfully.")

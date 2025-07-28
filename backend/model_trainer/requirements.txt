@@ -16,6 +16,8 @@ charset-normalizer==3.4.2
     # via requests
 click==8.2.1
     # via uvicorn
+dotenv==0.9.9
+    # via -r requirements.in
 fastapi==0.116.1
     # via -r requirements.in
 h11==0.16.0
@@ -42,7 +44,9 @@ pydantic-core==2.33.2
 python-dateutil==2.9.0.post0
     # via pandas
 python-dotenv==1.1.1
-    # via uvicorn
+    # via
+    #   dotenv
+    #   uvicorn
 pytz==2025.2
     # via pandas
 pyyaml==6.0.2
