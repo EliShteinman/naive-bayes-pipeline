@@ -16,11 +16,15 @@ WORKDIR /app
 RUN addgroup --system app && \
     adduser --system --ingroup app app && \
     mkdir -p /app/app && \
-    chown -R app:app /app
+    chown -R app:app /app \
+    mkdir -p /app/data && \
+    chown -R app:app /app/data
 
 USER app
 
 COPY --from=builder /opt/venv /opt/venv
+
+COPY ../data/mushroom_decoded ./data/
 
 COPY ../app/data_cleaner.py ./app/
 COPY ../app/data_handler.py ./app/
