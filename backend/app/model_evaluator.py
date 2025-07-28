@@ -43,9 +43,9 @@ class ModelEvaluatorService:
 
                     log_prob += class_details[feature][value]
 
-            if log_prob > best_log_prob:
-                best_log_prob = log_prob
-                best_class = target_value
+                if log_prob > best_log_prob:
+                    best_log_prob = log_prob
+                    best_class = target_value
 
             return best_class
 
