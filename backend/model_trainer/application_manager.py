@@ -32,7 +32,6 @@ def display_accuracy_report(report: Dict, pos_label: Any):
     logger.info("-----------------------------")
 
 
-# --- שינוי מרכזי בחתימת הפונקציה ---
 def prepare_model_pipeline(
     file_path: str,
     target_col: str,
