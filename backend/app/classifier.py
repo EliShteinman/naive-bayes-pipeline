@@ -1,8 +1,8 @@
-# classifier.py
+# app/classifier.py
 from typing import Any, Dict, Hashable, Literal
 
-from .logger_config import get_logger
-from .model_artifact import IModelArtifact
+from app.logger_config import get_logger
+from app.model_artifact import IModelArtifact
 
 logger = get_logger(__name__)
 

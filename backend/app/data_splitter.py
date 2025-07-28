@@ -2,7 +2,7 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-from backend.app.logger_config import get_logger
+from app.logger_config import get_logger
 
 logger = get_logger(__name__)
 

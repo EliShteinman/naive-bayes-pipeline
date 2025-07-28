@@ -3,11 +3,12 @@ from typing import Any, Dict, List, Type
 
 import requests
 import uvicorn
-from app import get_logger, model_artifact
+from app.logger_config import get_logger
+from app.model_artifact import NaiveBayesDictArtifact
 from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel, Field, create_model
 
-from . import config
+import config
 
 logger = get_logger(__name__)
 
@@ -24,7 +25,7 @@ def load_model_from_url(url: str) -> None:
             f"Failed to fetch model. Status code: {response.status_code}"
         )
 
-    artifact = model_artifact.NaiveBayesDictArtifact(response.json())
+    artifact = NaiveBayesDictArtifact(response.json())
     ml_models["classifier"] = artifact
     ml_models["expected_features"] = artifact.get_schema()
     ml_models["model_url"] = url

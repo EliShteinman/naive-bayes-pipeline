@@ -2,11 +2,12 @@ from contextlib import asynccontextmanager
 from typing import Any, Dict
 
 import uvicorn
-from app import IModelArtifact, NaiveBayesDictArtifact, get_logger
+from app.model_artifact import IModelArtifact, NaiveBayesDictArtifact
+from app.logger_config import get_logger
 from application_manager import prepare_model_pipeline
 from fastapi import FastAPI, HTTPException
 
-from . import config
+import config
 
 logger = get_logger(__name__)
 

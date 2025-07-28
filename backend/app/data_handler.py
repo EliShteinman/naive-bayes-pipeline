@@ -3,7 +3,7 @@ from typing import Literal
 
 import pandas as pd
 
-from backend.app.logger_config import get_logger
+from app.logger_config import get_logger
 
 logger = get_logger(__name__)
 
