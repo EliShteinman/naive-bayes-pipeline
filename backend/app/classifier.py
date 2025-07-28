@@ -15,6 +15,7 @@ class ClassifierService:
     It relies on the IModelArtifact interface, and its behavior for unseen values
     can be configured during initialization.
     """
+
     def __init__(
         self,
         model_artifact: IModelArtifact,
@@ -42,6 +43,7 @@ class ClassifierService:
             f"ClassifierService initialized with a model artifact. "
             f"Strategy for unseen values: '{self._on_unseen_in_predict}'"
         )
+
     def predict(self, sample: dict[Hashable, Any]) -> Dict[str, Any]:
         """
         Predicts the class for a single sample using the provided model artifact

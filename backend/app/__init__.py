@@ -8,14 +8,15 @@ function and the core service classes for external use.
 """
 
 from application_manager import prepare_model_pipeline
+
 from .classifier import ClassifierService
 from .data_cleaner import DataCleaner
 from .data_handler import DataHandler
 from .data_splitter import DataSplitter
+from .logger_config import get_logger
+from .model_artifact import IModelArtifact, NaiveBayesDictArtifact
 from .model_evaluator import ModelEvaluatorService
 from .naive_bayes_model_builder import NaiveBayesModelBuilder
-from .model_artifact import IModelArtifact, NaiveBayesDictArtifact
-from .logger_config import get_logger
 
 # Defines the public API of the 'app' package.
 # When a user does 'from app import *', only these names will be imported.

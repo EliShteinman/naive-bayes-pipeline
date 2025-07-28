@@ -1,11 +1,13 @@
 # main.py
+import os
 from contextlib import asynccontextmanager
-from typing import Any, Dict
-import uvicorn
-from fastapi import FastAPI, HTTPException, Request
-from app import get_logger, model_artifact
-import requests
+from typing import Any, Dict, List, Type
 
+import requests
+import uvicorn
+from app import get_logger, model_artifact
+from fastapi import Depends, FastAPI, HTTPException
+from pydantic import BaseModel, Field, create_model
 
 logger = get_logger(__name__)
 
@@ -17,13 +19,31 @@ def load_model_from_url(url: str) -> None:
     logger.info(f"Loading model from {url}")
     response = requests.get(url)
     if response.status_code != 200:
-        raise RuntimeError(f"Failed to fetch model. Status code: {response.status_code}")
+        raise RuntimeError(
+            f"Failed to fetch model. Status code: {response.status_code}"
+        )
 
     artifact = model_artifact.NaiveBayesDictArtifact(response.json())
     ml_models["classifier"] = artifact
     ml_models["expected_features"] = artifact.get_schema()
     ml_models["model_url"] = url
     ml_models["error"] = None
+
+
+def create_dynamic_model_from_schema(
+        model_name: str, schema: Dict[str, List[str]]
+) -> Type[BaseModel]:
+    """
+    Creates a Pydantic model dynamically from a given schema dictionary.
+    """
+    fields = {}
+    for feature_name in schema.keys():
+        clean_name = feature_name.replace("-", "_")
+        fields[clean_name] = (str, Field(..., alias=feature_name))
+
+    DynamicModel = create_model(model_name, **fields)
+    return DynamicModel
+
 
 # --- Lifespan Management ---
 @asynccontextmanager
@@ -32,6 +52,16 @@ async def lifespan(app: FastAPI):
         default_url = os.getenv("MODEL_URL")
         if default_url:
             load_model_from_url(default_url)
+
+            if "classifier" in ml_models:
+                schema = ml_models["expected_features"]
+                DynamicFeatureModel = create_dynamic_model_from_schema(
+                    model_name="DynamicInputModel", schema=schema
+                )
+                ml_models["pydantic_model"] = DynamicFeatureModel
+                logger.info(
+                    "Successfully created a dynamic Pydantic model for input validation."
+                )
         else:
             ml_models["error"] = "No model loaded. URL is not configured."
             logger.warning("No default model URL provided at startup.")
@@ -43,7 +73,6 @@ async def lifespan(app: FastAPI):
 
     logger.info("Server shutdown: Clearing ML models and resources.")
     ml_models.clear()
-
 
 
 # --- FastAPI App Initialization with Lifespan ---
@@ -67,7 +96,7 @@ def get_expected_features():
 
 
 @app.get("/predict", response_model=Dict[str, Any])
-def predict(request: Request):
+def predict(features: BaseModel = Depends(lambda: ml_models.get("pydantic_model"))):
     """
     Predicts the class of a mushroom based on its features passed as query parameters.
 
@@ -77,36 +106,20 @@ def predict(request: Request):
     if ml_models.get("error"):
         raise HTTPException(status_code=503, detail=ml_models.get("error"))
 
-    # Dynamically get all features from the query parameters
-    features = dict(request.query_params)
-    logger.info(f"Received GET prediction request for features: {features}")
-
-    # --- Manual Validation ---
-    # Check for missing features
-    expected_feature_names = ml_models["expected_features"].keys()
-    missing_features = set(expected_feature_names) - set(features.keys())
-    if missing_features:
-        detail = (
-            f"Missing required query parameters: {', '.join(sorted(missing_features))}"
+    if not features:
+        raise HTTPException(
+            status_code=503, detail="Model not ready. Please try again."
         )
-        logger.warning(f"Prediction failed due to bad input: {detail}")
-        raise HTTPException(status_code=400, detail=detail)
 
-    # Check for extra features that the model doesn't know
-    extra_features = set(features.keys()) - set(expected_feature_names)
-    if extra_features:
-        detail = f"Unknown parameters provided: {', '.join(sorted(extra_features))}"
-        logger.warning(f"Prediction failed due to bad input: {detail}")
-        raise HTTPException(status_code=400, detail=detail)
+    feature_dict = features.dict(by_alias=True)
+    logger.info(f"Received GET prediction request for features: {feature_dict}")
 
-    # --- Prediction Logic ---
     classifier = ml_models["classifier"]
     try:
-        prediction = classifier.predict(features)
+        prediction = classifier.predict(feature_dict)
         logger.info(f"Prediction successful: {prediction}")
         return prediction
     except ValueError as e:
-        # This will catch errors from the classifier, e.g., an unknown feature value
         logger.warning(f"Prediction failed due to bad value in input: {e}")
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
@@ -131,6 +144,16 @@ def reload_model(url: str = None):
             load_model_from_url(ml_models["model_url"])
         else:
             raise HTTPException(status_code=400, detail="No model URL specified.")
+
+        # After reloading, we must also recreate the dynamic Pydantic model
+        if "classifier" in ml_models:
+            schema = ml_models["expected_features"]
+            DynamicFeatureModel = create_dynamic_model_from_schema(
+                model_name="DynamicInputModel", schema=schema
+            )
+            ml_models["pydantic_model"] = DynamicFeatureModel
+            logger.info("Re-created dynamic Pydantic model after reload.")
+
         return {"status": "success", "message": "Model reloaded successfully."}
     except Exception as e:
         logger.error(f"Model reload failed: {e}", exc_info=True)

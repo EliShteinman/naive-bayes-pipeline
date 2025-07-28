@@ -7,6 +7,7 @@ builds a user input form, sends the user's data for prediction, and displays
 the result.
 """
 import nest_asyncio
+
 nest_asyncio.apply()
 import os
 

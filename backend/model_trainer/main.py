@@ -3,9 +3,9 @@ from contextlib import asynccontextmanager
 from typing import Any, Dict
 
 import uvicorn
-from fastapi import FastAPI, HTTPException
-from application_manager import prepare_model_pipeline
 from app import IModelArtifact, NaiveBayesDictArtifact, get_logger
+from application_manager import prepare_model_pipeline
+from fastapi import FastAPI, HTTPException
 
 logger = get_logger(__name__)
 
@@ -25,18 +25,24 @@ async def lifespan(app: FastAPI):
         trained_model_artifact: IModelArtifact = prepare_model_pipeline(
             file_path="../data/mushroom_decoded.csv",
             target_col="poisonous",
-            pos_label="p"
+            pos_label="p",
         )
 
         # 2. Store the artifact in the global store
         model_store["artifact"] = trained_model_artifact
-        logger.info("Model training pipeline completed successfully. Artifact is ready.")
+        logger.info(
+            "Model training pipeline completed successfully. Artifact is ready."
+        )
 
     except (FileNotFoundError, RuntimeError) as e:
-        logger.critical(f"A critical error occurred during training: {e}", exc_info=True)
+        logger.critical(
+            f"A critical error occurred during training: {e}", exc_info=True
+        )
         model_store["error"] = f"Model training failed: {e}"
     except Exception as e:
-        logger.critical(f"An unexpected error occurred during training: {e}", exc_info=True)
+        logger.critical(
+            f"An unexpected error occurred during training: {e}", exc_info=True
+        )
         model_store["error"] = "An unexpected internal error occurred."
 
     yield
