@@ -1,65 +1,72 @@
-# model_trainer/main.py
+import os
 from contextlib import asynccontextmanager
-from typing import Any, Dict
 
 import uvicorn
-from app import IModelArtifact, NaiveBayesDictArtifact, get_logger
+from app import IModelArtifact, get_logger, NaiveBayesDictArtifact
+from typing import Dict, Any
 from application_manager import prepare_model_pipeline
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
+
+# Load .env from the current directory
+load_dotenv()
 
 logger = get_logger(__name__)
 
-# --- Global object to hold the trained model ---
+# --- Configuration Loading ---
+FILE_PATH = os.getenv("DATA_FILE_PATH")
+TARGET_COL = os.getenv("TARGET_COL")
+POS_LABEL = os.getenv("POS_LABEL")
+TEST_SIZE = float(os.getenv("TEST_SIZE", 0.3))
+RANDOM_STATE = int(os.getenv("RANDOM_STATE", 42))
+VALIDATE_TEST_SET = os.getenv("VALIDATE_TEST_SET", "true").lower() == "true"
+MIN_ACCURACY = float(os.getenv("MIN_ACCURACY", 0.8))
+COLUMNS_TO_DROP = os.getenv("COLUMNS_TO_DROP", "").split(',')
+ALPHA = float(os.getenv("ALPHA", 1.0))
+
+# --- Global state ---
 model_store = {}
 
 
-# --- Lifespan Management ---
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """
-    On startup, run the training pipeline and store the resulting artifact.
-    """
     logger.info("Trainer service startup: Starting model training pipeline...")
+    if not all([FILE_PATH, TARGET_COL, POS_LABEL]):
+        model_store["error"] = "Critical configuration (DATA_FILE_PATH, TARGET_COL, POS_LABEL) is missing."
+        logger.critical(model_store["error"])
+        yield
+        return
+
     try:
-        # 1. Run the pipeline to get the trained artifact object
         trained_model_artifact: IModelArtifact = prepare_model_pipeline(
-            file_path="../data/mushroom_decoded.csv",
-            target_col="poisonous",
-            pos_label="p",
+            file_path=FILE_PATH,
+            target_col=TARGET_COL,
+            pos_label=POS_LABEL,
+            test_size=TEST_SIZE,
+            random_state=RANDOM_STATE,
+            validate_test_set=VALIDATE_TEST_SET,
+            min_accuracy=MIN_ACCURACY,
+            columns_to_drop=COLUMNS_TO_DROP,
+            alpha=ALPHA,
         )
-
-        # 2. Store the artifact in the global store
         model_store["artifact"] = trained_model_artifact
-        logger.info(
-            "Model training pipeline completed successfully. Artifact is ready."
-        )
-
-    except (FileNotFoundError, RuntimeError) as e:
-        logger.critical(
-            f"A critical error occurred during training: {e}", exc_info=True
-        )
-        model_store["error"] = f"Model training failed: {e}"
+        logger.info("Model training pipeline completed successfully.")
     except Exception as e:
-        logger.critical(
-            f"An unexpected error occurred during training: {e}", exc_info=True
-        )
-        model_store["error"] = "An unexpected internal error occurred."
+        logger.critical(f"A critical error occurred during training: {e}", exc_info=True)
+        model_store["error"] = f"Model training failed: {e}"
 
     yield
 
-    # Shutdown: Clean up resources
     logger.info("Trainer service shutdown.")
     model_store.clear()
 
 
-# --- FastAPI App Initialization ---
 app = FastAPI(
     title="Model Trainer Service",
     description="An internal service that trains a model and exposes it for serving.",
     version="1.0.0",
     lifespan=lifespan,
 )
-
 
 # --- API Endpoints ---
 @app.get("/latest-model", response_model=Dict[str, Any])
@@ -87,5 +94,5 @@ def get_latest_model():
 # To run this service directly for development
 if __name__ == "__main__":
     logger.info("Running Model Trainer Service in development mode.")
-    # Port 8000 to avoid conflict with the model_server on port 8000
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    # Port 8001 to avoid conflict with the model_server on port 8000
+    uvicorn.run("main:app", host="0.0.0.0", port=8001, reload=True)

@@ -1,4 +1,3 @@
-# main.py
 import os
 from contextlib import asynccontextmanager
 from typing import Any, Dict, List, Type
@@ -6,10 +5,17 @@ from typing import Any, Dict, List, Type
 import requests
 import uvicorn
 from app import get_logger, model_artifact
+from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel, Field, create_model
 
+# Load .env from the current directory
+load_dotenv()
+
 logger = get_logger(__name__)
+
+# --- Configuration Loading ---
+MODEL_URL = os.getenv("MODEL_URL")
 
 # --- Global objects to be managed by lifespan ---
 ml_models = {}
@@ -48,23 +54,22 @@ def create_dynamic_model_from_schema(
 # --- Lifespan Management ---
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    try:
-        default_url = os.getenv("MODEL_URL")
-        if default_url:
-            load_model_from_url(default_url)
+    logger.info("Server service startup...")
+    if not MODEL_URL:
+        ml_models["error"] = "MODEL_URL is not configured. Cannot load model."
+        logger.critical(ml_models["error"])
+        yield
+        return
 
-            if "classifier" in ml_models:
-                schema = ml_models["expected_features"]
-                DynamicFeatureModel = create_dynamic_model_from_schema(
-                    model_name="DynamicInputModel", schema=schema
-                )
-                ml_models["pydantic_model"] = DynamicFeatureModel
-                logger.info(
-                    "Successfully created a dynamic Pydantic model for input validation."
-                )
-        else:
-            ml_models["error"] = "No model loaded. URL is not configured."
-            logger.warning("No default model URL provided at startup.")
+    try:
+        load_model_from_url(MODEL_URL)
+        if "classifier" in ml_models:
+            schema = ml_models["expected_features"]
+            DynamicFeatureModel = create_dynamic_model_from_schema(
+                "DynamicInputModel", schema
+            )
+            ml_models["pydantic_model"] = DynamicFeatureModel
+            logger.info("Successfully created a dynamic Pydantic model.")
     except Exception as e:
         logger.critical(f"Model load failed: {e}", exc_info=True)
         ml_models["error"] = "Model failed to load during startup."
@@ -75,7 +80,6 @@ async def lifespan(app: FastAPI):
     ml_models.clear()
 
 
-# --- FastAPI App Initialization with Lifespan ---
 app = FastAPI(
     title="Mushroom Classifier API (Server)",
     description="An API to predict if a mushroom is poisonous or edible.",
@@ -163,4 +167,4 @@ def reload_model(url: str = None):
 
 if __name__ == "__main__":
     logger.info("Running application in development mode.")
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8002, reload=True)

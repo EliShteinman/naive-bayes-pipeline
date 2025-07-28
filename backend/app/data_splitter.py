@@ -20,7 +20,7 @@ class DataSplitter:
         target_col: str,
         test_size: float = 0.3,
         random_state: int = 42,
-        validate_test_set: bool = True,  # <<< הוספת הפרמטר החדש >>>
+        validate_test_set: bool = True,
     ):
         """
         Initializes the DataSplitter with the data and splitting configuration.
@@ -37,7 +37,7 @@ class DataSplitter:
         self.target_col = target_col
         self.test_size = test_size
         self.random_state = random_state
-        self.validate_test_set = validate_test_set  # שמירת הפרמטר
+        self.validate_test_set = validate_test_set
         logger.info(
             f"DataSplitter initialized with test_size={self.test_size}, "
             f"random_state={self.random_state}, "
@@ -70,7 +70,6 @@ class DataSplitter:
                 "Validating test set to remove rows with unseen feature values."
             )
 
-            # --- כל הלוגיקה המקורית שלך נשמרת כאן, בתוך תנאי ---
             feature_cols = [col for col in self.data.columns if col != self.target_col]
             train_uniques = {col: set(train_df[col].unique()) for col in feature_cols}
 
@@ -94,7 +93,6 @@ class DataSplitter:
                 )
             else:
                 logger.info("Test set validation passed. No rows were dropped.")
-            # --- סוף הלוגיקה המקורית ---
         else:
             logger.info("Skipping test set validation as per configuration.")
 

@@ -7,8 +7,6 @@ evaluation, and the classifier service itself. It exposes the main pipeline
 function and the core service classes for external use.
 """
 
-from application_manager import prepare_model_pipeline
-
 from .classifier import ClassifierService
 from .data_cleaner import DataCleaner
 from .data_handler import DataHandler
@@ -22,7 +20,6 @@ from .naive_bayes_model_builder import NaiveBayesModelBuilder
 # When a user does 'from app import *', only these names will be imported.
 __all__ = [
     # Core Services & Pipeline
-    "prepare_model_pipeline",
     "ClassifierService",
     "ModelEvaluatorService",
     # Data Handling Components
