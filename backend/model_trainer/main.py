@@ -1,9 +1,9 @@
 import os
 from contextlib import asynccontextmanager
+from typing import Any, Dict
 
 import uvicorn
-from app import IModelArtifact, get_logger, NaiveBayesDictArtifact
-from typing import Dict, Any
+from app import IModelArtifact, NaiveBayesDictArtifact, get_logger
 from application_manager import prepare_model_pipeline
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
@@ -21,7 +21,7 @@ TEST_SIZE = float(os.getenv("TEST_SIZE", 0.3))
 RANDOM_STATE = int(os.getenv("RANDOM_STATE", 42))
 VALIDATE_TEST_SET = os.getenv("VALIDATE_TEST_SET", "true").lower() == "true"
 MIN_ACCURACY = float(os.getenv("MIN_ACCURACY", 0.8))
-COLUMNS_TO_DROP = os.getenv("COLUMNS_TO_DROP", "").split(',')
+COLUMNS_TO_DROP = os.getenv("COLUMNS_TO_DROP", "").split(",")
 ALPHA = float(os.getenv("ALPHA", 1.0))
 
 # --- Global state ---
@@ -32,7 +32,9 @@ model_store = {}
 async def lifespan(app: FastAPI):
     logger.info("Trainer service startup: Starting model training pipeline...")
     if not all([FILE_PATH, TARGET_COL, POS_LABEL]):
-        model_store["error"] = "Critical configuration (DATA_FILE_PATH, TARGET_COL, POS_LABEL) is missing."
+        model_store["error"] = (
+            "Critical configuration (DATA_FILE_PATH, TARGET_COL, POS_LABEL) is missing."
+        )
         logger.critical(model_store["error"])
         yield
         return
@@ -52,7 +54,9 @@ async def lifespan(app: FastAPI):
         model_store["artifact"] = trained_model_artifact
         logger.info("Model training pipeline completed successfully.")
     except Exception as e:
-        logger.critical(f"A critical error occurred during training: {e}", exc_info=True)
+        logger.critical(
+            f"A critical error occurred during training: {e}", exc_info=True
+        )
         model_store["error"] = f"Model training failed: {e}"
 
     yield
@@ -67,6 +71,7 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
 
 # --- API Endpoints ---
 @app.get("/latest-model", response_model=Dict[str, Any])

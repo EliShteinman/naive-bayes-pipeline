@@ -6,14 +6,13 @@ This app dynamically fetches the model's expected features from the backend,
 builds a user input form, sends the user's data for prediction, and displays
 the result.
 """
-import nest_asyncio
-
-nest_asyncio.apply()
 import os
 
+import nest_asyncio
 import requests
 import streamlit as st
 
+nest_asyncio.apply()
 # --- 1. Configuration ---
 # Use an environment variable for the API URL, with a fallback for local development.
 # This makes the app more flexible for different deployment scenarios.

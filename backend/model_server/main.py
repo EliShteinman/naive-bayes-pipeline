@@ -37,7 +37,7 @@ def load_model_from_url(url: str) -> None:
 
 
 def create_dynamic_model_from_schema(
-        model_name: str, schema: Dict[str, List[str]]
+    model_name: str, schema: Dict[str, List[str]]
 ) -> Type[BaseModel]:
     """
     Creates a Pydantic model dynamically from a given schema dictionary.
