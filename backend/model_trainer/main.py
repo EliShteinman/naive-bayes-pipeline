@@ -4,10 +4,8 @@ from typing import Any, Dict
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
-
-from app.application_manager import prepare_model_pipeline
-from app.model_artifact import IModelArtifact, NaiveBayesDictArtifact
-from app.logger_config import get_logger
+from application_manager import prepare_model_pipeline
+from app import IModelArtifact, NaiveBayesDictArtifact, get_logger
 
 logger = get_logger(__name__)
 
@@ -25,7 +23,7 @@ async def lifespan(app: FastAPI):
     try:
         # 1. Run the pipeline to get the trained artifact object
         trained_model_artifact: IModelArtifact = prepare_model_pipeline(
-            file_path="data/mushroom_decoded.csv",
+            file_path="../data/mushroom_decoded.csv",
             target_col="poisonous",
             pos_label="p"
         )
@@ -83,5 +81,5 @@ def get_latest_model():
 # To run this service directly for development
 if __name__ == "__main__":
     logger.info("Running Model Trainer Service in development mode.")
-    # Port 8001 to avoid conflict with the model_server on port 8000
-    uvicorn.run("main:app", host="0.0.0.0", port=8001, reload=True)
+    # Port 8000 to avoid conflict with the model_server on port 8000
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

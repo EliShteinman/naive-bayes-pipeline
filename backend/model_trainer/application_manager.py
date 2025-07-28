@@ -1,13 +1,13 @@
-# app/application_manager.py
+# application_manager.py
 from typing import Any, Dict
 
-from .data_cleaner import DataCleaner
-from .data_handler import DataHandler
-from .data_splitter import DataSplitter
-from .logger_config import get_logger
-from .model_evaluator import ModelEvaluatorService
-from .naive_bayes_model_builder import NaiveBayesModelBuilder
-from .model_artifact import IModelArtifact
+from app.data_cleaner import DataCleaner
+from app.data_handler import DataHandler
+from app.data_splitter import DataSplitter
+from app.logger_config import get_logger
+from app.model_evaluator import ModelEvaluatorService
+from app.naive_bayes_model_builder import NaiveBayesModelBuilder
+from app.model_artifact import IModelArtifact
 
 logger = get_logger(__name__)
 

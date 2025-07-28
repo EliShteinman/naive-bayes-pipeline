@@ -3,8 +3,8 @@ from typing import Any, Dict
 
 import pandas as pd
 
-from .logger_config import get_logger
-from .model_artifact import IModelArtifact
+from backend.app.logger_config import get_logger
+from backend.app.model_artifact import IModelArtifact
 
 logger = get_logger(__name__)
 

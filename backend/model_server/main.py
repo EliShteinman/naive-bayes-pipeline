@@ -1,12 +1,10 @@
 # main.py
 from contextlib import asynccontextmanager
 from typing import Any, Dict
-import os
-import pickle
-import requests
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request
-from app import *
+from app import get_logger, model_artifact
+import requests
 
 
 logger = get_logger(__name__)
@@ -15,34 +13,37 @@ logger = get_logger(__name__)
 ml_models = {}
 
 
+def load_model_from_url(url: str) -> None:
+    logger.info(f"Loading model from {url}")
+    response = requests.get(url)
+    if response.status_code != 200:
+        raise RuntimeError(f"Failed to fetch model. Status code: {response.status_code}")
+
+    artifact = model_artifact.NaiveBayesDictArtifact(response.json())
+    ml_models["classifier"] = artifact
+    ml_models["expected_features"] = artifact.get_schema()
+    ml_models["model_url"] = url
+    ml_models["error"] = None
+
 # --- Lifespan Management ---
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    pass
-    # """
-    # Manages the application's lifespan. Code before 'yield' runs on startup,
-    # and code after 'yield' runs on shutdown.
-    # """
-    # # Startup: Load the model and prepare resources
-    # logger.info("Server startup: Loading model and preparing application...")
-    # try:
-    #     classifier, expected_features = prepare_model_pipeline(
-    #         file_path="data/mushroom_decoded.csv", target_col="poisonous", pos_label="p"
-    #     )
-    #
-    #     ml_models["classifier"] = classifier
-    #     ml_models["expected_features"] = expected_features
-    #
-    #     logger.info("Model loaded and application is ready.")
-    # except (FileNotFoundError, RuntimeError, Exception) as e:
-    #     logger.critical(f"A critical error occurred during startup: {e}", exc_info=True)
-    #     ml_models["error"] = "Model could not be loaded. Check server logs."
-    #
-    # yield
-    #
-    # # Shutdown: Clean up the resources
-    # logger.info("Server shutdown: Clearing ML models and resources.")
-    # ml_models.clear()
+    try:
+        default_url = os.getenv("MODEL_URL")
+        if default_url:
+            load_model_from_url(default_url)
+        else:
+            ml_models["error"] = "No model loaded. URL is not configured."
+            logger.warning("No default model URL provided at startup.")
+    except Exception as e:
+        logger.critical(f"Model load failed: {e}", exc_info=True)
+        ml_models["error"] = "Model failed to load during startup."
+
+    yield
+
+    logger.info("Server shutdown: Clearing ML models and resources.")
+    ml_models.clear()
+
 
 
 # --- FastAPI App Initialization with Lifespan ---
@@ -115,6 +116,26 @@ def predict(request: Request):
         raise HTTPException(
             status_code=500, detail="An internal server error occurred."
         )
+
+
+@app.post("/reload-model")
+def reload_model(url: str = None):
+    """
+    Reloads the model from the last known URL or a new one.
+    If `url` is passed — uses it; else uses the last loaded URL.
+    """
+    try:
+        if url:
+            load_model_from_url(url)
+        elif ml_models.get("model_url"):
+            load_model_from_url(ml_models["model_url"])
+        else:
+            raise HTTPException(status_code=400, detail="No model URL specified.")
+        return {"status": "success", "message": "Model reloaded successfully."}
+    except Exception as e:
+        logger.error(f"Model reload failed: {e}", exc_info=True)
+        ml_models["error"] = "Model reload failed."
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":
