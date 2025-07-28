@@ -3,12 +3,13 @@ from typing import Any, Dict
 
 import uvicorn
 from app.model_artifact import IModelArtifact, NaiveBayesDictArtifact
-from app.logger_config import get_logger
+from app.logger_config import get_logger, setup_logging
 from application_manager import prepare_model_pipeline
 from fastapi import FastAPI, HTTPException
 
 import config
 
+setup_logging()
 logger = get_logger(__name__)
 
 # --- Global state ---

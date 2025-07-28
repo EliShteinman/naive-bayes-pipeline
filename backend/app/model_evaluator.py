@@ -42,7 +42,7 @@ class ModelEvaluatorService:
                         )
 
                     log_prob += class_details[feature][value]
-
+                logger.debug(f"Sample prediction score - Class: {target_value}, LogProb: {log_prob:.4f}")
                 if log_prob > best_log_prob:
                     best_log_prob = log_prob
                     best_class = target_value

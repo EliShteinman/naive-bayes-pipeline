@@ -3,13 +3,13 @@ from typing import Any, Dict, List, Type
 
 import requests
 import uvicorn
-from app.logger_config import get_logger
+from app.logger_config import get_logger, setup_logging
 from app.model_artifact import NaiveBayesDictArtifact
 from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel, Field, create_model
 
 import config
-
+setup_logging()
 logger = get_logger(__name__)
 
 

@@ -1,67 +1,70 @@
-# app/logger_config.py
 import logging
 import os
 import sys
 
-# --- Configuration from Environment Variables ---
-# LOG_TO_FILE controls whether we write to a file. Defaults to 'true' for local dev.
-# In a Docker environment, this should be set to 'false' or any other value.
-LOG_TO_FILE = os.getenv("LOG_TO_FILE", "true").lower() == "true"
-LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
-
-# --- Formats and Constants ---
+# Constants for formatting
 CONSOLE_FORMAT = "%(asctime)s - %(name)-20s - %(levelname)-8s - %(message)s"
-FILE_FORMAT = (
-    "%(asctime)s - %(name)s - %(levelname)s - %(module)s:%(lineno)d - %(message)s"
-)
+FILE_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(module)s:%(lineno)d - %(message)s"
 LOG_FILE = "backend_app.log"
+
+# A flag to ensure setup happens only once
+_logging_configured = False
+
+
+def setup_logging():
+    """
+    Configures the root logger for the application.
+    This function should be called only once when the application starts.
+    """
+    global _logging_configured
+    if _logging_configured:
+        return
+
+    # Read configuration from environment variables at runtime
+    log_level = os.getenv("LOG_LEVEL", "INFO").upper()
+    log_to_file = os.getenv("LOG_TO_FILE", "false").lower() == "true"
+
+    # Get the root logger
+    root_logger = logging.getLogger()
+    # Clear any existing handlers to avoid duplicates
+    if root_logger.hasHandlers():
+        root_logger.handlers.clear()
+
+    # Set the base level to capture all messages; handlers will filter them
+    root_logger.setLevel(logging.DEBUG)
+
+    # --- Console Handler ---
+    console_handler = logging.StreamHandler(sys.stdout)
+    try:
+        console_handler.setLevel(log_level)
+    except ValueError:
+        # Fallback to INFO if an invalid level is provided
+        console_handler.setLevel(logging.INFO)
+        logging.warning(f"Invalid LOG_LEVEL '{log_level}'. Defaulting to INFO.")
+
+    console_handler.setFormatter(logging.Formatter(CONSOLE_FORMAT, datefmt="%H:%M:%S"))
+    root_logger.addHandler(console_handler)
+
+    # --- File Handler (Conditional) ---
+    if log_to_file:
+        try:
+            file_handler = logging.FileHandler(LOG_FILE, mode="a")
+            file_handler.setLevel(logging.WARNING)  # Log only important messages to file
+            file_handler.setFormatter(logging.Formatter(FILE_FORMAT))
+            root_logger.addHandler(file_handler)
+            logging.info(f"Logging to file enabled: {LOG_FILE}")
+        except (IOError, PermissionError) as e:
+            logging.warning(f"Could not configure file logging to {LOG_FILE}. Error: {e}")
+    else:
+        # This message will now be logged once by the configured logger
+        logging.info("Logging to file is disabled.")
+
+    _logging_configured = True
 
 
 def get_logger(name: str) -> logging.Logger:
     """
-    Configures and returns a logger.
-    - Always logs to the console.
-    - Conditionally logs to a file based on the LOG_TO_FILE environment variable.
+    Returns a logger instance with the specified name.
+    Assumes setup_logging() has already been called.
     """
-    logger = logging.getLogger(name)
-
-    # Set the level for the logger itself. Messages below this will be ignored.
-    logger.setLevel(logging.DEBUG)  # Process everything, handlers will filter
-
-    if not logger.handlers:
-        # --- Console Handler (Always On) ---
-        console_handler = logging.StreamHandler(sys.stdout)
-
-        # Set level from environment variable, fallback to INFO
-        try:
-            console_handler.setLevel(LOG_LEVEL)
-        except ValueError:
-            print(f"Warning: Invalid LOG_LEVEL '{LOG_LEVEL}'. Defaulting to INFO.")
-            console_handler.setLevel(logging.INFO)
-
-        console_handler.setFormatter(
-            logging.Formatter(CONSOLE_FORMAT, datefmt="%H:%M:%S")
-        )
-        logger.addHandler(console_handler)
-
-        # --- File Handler (Conditional) ---
-        if LOG_TO_FILE:
-            try:
-                # Writes logs to a file. Mode 'a' appends to the file.
-                file_handler = logging.FileHandler(LOG_FILE, mode="a")
-                file_handler.setLevel(
-                    logging.WARNING
-                )  # Usually, we want only important logs in files
-                file_handler.setFormatter(logging.Formatter(FILE_FORMAT))
-                logger.addHandler(file_handler)
-                # Use a one-time print to inform the user, not a logger call
-                print(f"Logging to file enabled: {LOG_FILE}")
-            except (IOError, PermissionError) as e:
-                # A one-time print is better here, as logger might be in a broken state
-                print(
-                    f"Warning: Could not configure file logging to {LOG_FILE}. Error: {e}"
-                )
-        else:
-            print("Logging to file is disabled.")
-
-    return logger
+    return logging.getLogger(name)
